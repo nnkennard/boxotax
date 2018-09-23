@@ -17,9 +17,12 @@ relations = Table('relations', umls_lib.RELATION_FILE,
 
 def construct_table(table, conn):
   c = conn.cursor()
-  create_table_string = "CREATE TABLE {} ({})".format(
+  create_table_string = "CREATE TABLE {} ({}, PRIMARY KEY ({}))".format(
       table.name,
-      ", ".join(name+" TEXT" for name in table.field_names))
+      ", ".join(name+" TEXT" for name in table.field_names),
+      table.primary_key)
+  print(create_table_string)
+  c.execute(create_table_string)
 
   file_path = os.path.join("/iesl/data/umls_2017AB", table.origin_file)
   for fields in umls_lib.read_file(file_path):
@@ -28,7 +31,9 @@ def construct_table(table, conn):
         in zip( table.field_names, table.field_indices)}
     insert_string = "INSERT INTO {} VALUES ({})".format(
         table.name,
-        ", ".join(values[name] for name in table.field_names))
+        ", ".join('"' + values[name] + '"' for name in table.field_names))
+    print(insert_string)
+    c.execute(insert_string)
   conn.commit()
 
 def main():
