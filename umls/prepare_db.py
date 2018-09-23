@@ -13,7 +13,12 @@ Table = collections.namedtuple('Table',
 atoms = Table('atoms', umls_lib.CONCEPT_FILE,
     [0, 7, 11], ["cui", "aui", "source"], "aui")
 relations = Table('relations', umls_lib.RELATION_FILE,
-    [0, 3, 4, 7, 10], [], "(cui1, cui2)")
+    [0, 1, 3, 4, 5, 7, 8, 10],
+    ["cui1", "aui1", "relation", "cui2", "aui2", "fine_relation", "rui",
+     "source"], "rui")
+types = Table('types', umls_lib.SEMTYPE_FILE,
+    [0, 2, 4], ["cui", "type_tree_number", "atui"], "atui")
+
 
 def construct_table(table, conn):
   c = conn.cursor()
@@ -33,6 +38,7 @@ def construct_table(table, conn):
         table.name,
         ", ".join('"' + values[name] + '"' for name in table.field_names))
     print(insert_string)
+    # TODO: Figure out execute_many
     c.execute(insert_string)
   conn.commit()
 
