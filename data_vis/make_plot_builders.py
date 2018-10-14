@@ -25,8 +25,9 @@ class MultiGraph(object):
       for rel_pair, pairs in rels.iteritems():
         self.graphs_dict[source][rel_pair] = SimpleGraph(source, rel_pair,
             pairs)
-    
+
     self.hypernym_percents_dict = self.hypernym_breakdowns()
+    self.overlap_percents_dict = self.overlap_percentages()
 
   def hypernym_breakdowns(self):
     counts_dict = collections.defaultdict(dict)
@@ -38,8 +39,22 @@ class MultiGraph(object):
       for rel_pair, pairs in rels.iteritems():
         percents_dict[source][rel_pair] = float(len(pairs))/source_total
         print source, rel_pair, percents_dict[source][rel_pair]
-      print  
-    return percents_dict  
+      print
+    return percents_dict
+
+  def overlap_percentages(self):
+    overlap_percentage_dict = collections.defaultdict(dict)
+    pairs_by_source = dict()
+    for source, rels in self.edges_dict.iteritems():
+      pairs_by_source[source] = set(sum(rels.values(), []))
+
+    for source_1, pairs_1 in pairs_by_source.iteritems():
+      for source_2, pairs_2 in pairs_by_source.iteritems():
+        overlap_percentage_dict[source_1][source_2] = len(
+            pairs_1.intersection(pairs_2))/float(len(pairs_1))
+        print source_1, source_2, overlap_percentage_dict[source_1][source_2]
+
+    return overlap_percentage_dict
 
 
 class SimpleGraph(object):
