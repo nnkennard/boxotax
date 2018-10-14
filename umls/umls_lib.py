@@ -14,12 +14,19 @@ class SemanticTypePaths(object):
   ENTITY = "A"
   EVENT = "B"
 
+
+IMPORTANT_TYPE_PATHS = [SemanticTypePaths.FISH, SemanticTypePaths.DISEASE,
+    SemanticTypePaths.DRUG, SemanticTypePaths.GENE, SemanticTypePaths.EVENT,
+    SemanticTypePaths.ENTITY]
+
+
 ALL_SOURCES = ["AIR", "AOD", "AOT", "ATC" "CCS", "CCS_10", "CSP", "CST",
 "CVX", "FMA", "GO", "HCPCS", "HGNC", "HL7V2.5", "HL7V3.0", "HPO", "ICD10PCS",
 "ICD9CM", "ICPC", "LCH_NW", "LNC", "MEDLINEPLUS", "MSH", "MTH", "MTHHH",
 "MTHICD9", "MTHMST", "MTHSPL", "MVX", "NCBI",  "NCI", "NDFRT", "NDFRT_FDASPL",
 "NDFRT_FMTSME", "OMIM", "PDQ", "RAM", "RXNORM", "SOP", "SRC", "TKMT", "USPMG",
 "UWDA", "VANDF"]
+
 
 def read_file(filename):
   with open(filename, 'r') as f:
