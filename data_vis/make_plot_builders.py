@@ -25,6 +25,21 @@ class MultiGraph(object):
       for rel_pair, pairs in rels.iteritems():
         self.graphs_dict[source][rel_pair] = SimpleGraph(source, rel_pair,
             pairs)
+    
+    self.hypernym_percents_dict = self.hypernym_breakdowns()
+
+  def hypernym_breakdowns(self):
+    counts_dict = collections.defaultdict(dict)
+    percents_dict = collections.defaultdict(dict)
+    for source, rels in self.edges_dict.iteritems():
+      for rel_pair, pairs in rels.iteritems():
+        counts_dict[source][rel_pair] = len(pairs)
+      source_total = float(sum(counts_dict[source].values()))
+      for rel_pair, pairs in rels.iteritems():
+        percents_dict[source][rel_pair] = float(len(pairs))/source_total
+        print source, rel_pair, percents_dict[source][rel_pair]
+      print  
+    return percents_dict  
 
 
 class SimpleGraph(object):
