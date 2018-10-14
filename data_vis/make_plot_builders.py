@@ -8,28 +8,45 @@ def hypernym_breakdowns():
 def overlap_percentages():
   pass
 
-SUPER_ROOT = "super_root_child"
+def join_rels(relation, fine_relation):
+  return relation + "_" + fine_relation
+
+class MultiGraph(object):
+  def __init__(self, extended_pairs):
+    self.edges_dict = collections.defaultdict(
+        lambda:collections.defaultdict(list))
+    for (source_node, target_node, relation, fine_relation,
+         source) in extended_pairs:
+      self.edges_dict[source][join_rels(relation,
+        fine_relation)].append((source_node, target_node))
+
+    self.graphs_dict = collections.defaultdict(dict)
+    for source, rels in self.edges_dict.iteritems():
+      for rel_pair, pairs in rels.iteritems():
+        self.graphs_dict[source][rel_pair] = SimpleGraph(source, rel_pair,
+            pairs)
+
 
 class SimpleGraph(object):
   def __init__(self, source, relations, pairs):
     self.source = source
     self.relations = relations
 
-    sources, targets, relations, _, _ = zip(*pairs)
-    self.subroot_identifiers = list(set(sources) - set(targets))
-    node_identifiers = sorted(list(set(sources).union(set(targets))))
+    source_nodes, target_nodes = zip(*pairs)
+    self.subroot_identifiers = list(set(source_nodes) - set(target_nodes))
 
+    node_identifiers = sorted(list(set(source_nodes).union(set(target_nodes))))
     self.nodes = {identifier:SimpleNode(identifier) for identifier in
         node_identifiers}
 
-    self.root = self.build_graph(zip(sources, targets, relations))
+    self.build(pairs)
 
-  def build_graph(self, pairs):
+  def build(self, pairs):
     super_root = SimpleNode("ROOT", None)
     for identifier in self.subroot_identifiers:
-      super_root.children[SUPER_ROOT].append(self.nodes[identifier])
-    for source, target, relation_type in pairs:
-      self.nodes[source].children[relation_type].append(self.nodes[target])
+      super_root.children.append(self.nodes[identifier])
+    for source, target in pairs:
+      self.nodes[source].children.append(self.nodes[target])
     return super_root
 
   def connected_components(self):
@@ -40,11 +57,11 @@ class SimpleNode(object):
   def __init__(self, identifier, text=None):
     self.identifier = identifier
     self.text = text
-    self.children = collections.defaultdict(list)
+    self.children = []
 
 
 def main():
-  config_line = "config_msh_mth	CHD|RN	None	None	None	A1.1.3.1.1.3"
+  config_line = "config_msh_mth	CHD|RN	None	None	None	None"
   conn = sqlite3.connect(umls_lib.DB_FILE)
   c = conn.cursor()
 
@@ -53,7 +70,7 @@ def main():
 
   source = "ALL"
   relations = "PAR|BR"
-  g = SimpleGraph(source, relations, pairs)
+  g = MultiGraph(pairs)
   pass
 
 if __name__ == "__main__":
