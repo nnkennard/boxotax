@@ -1,4 +1,4 @@
-DB_FILE = "umls.db"
+DB_FILE = "/home/nnayak/boxotax/umls/umls.db"
 
 CONCEPT_FILE = "META/MRCONSO.RRF"
 RELATION_FILE = "META/MRREL.RRF"
