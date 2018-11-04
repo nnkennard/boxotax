@@ -1,4 +1,4 @@
-DB_FILE = "/home/nnayak/boxotax/umls/umls.db"
+DB_FILE = "/Users/nnayak/git_repos/boxotax/umls/umls.db"
 
 CONCEPT_FILE = "META/MRCONSO.RRF"
 RELATION_FILE = "META/MRREL.RRF"
@@ -13,6 +13,15 @@ class SemanticTypePaths(object):
   GENE = "A1.2.3.5"
   ENTITY = "A"
   EVENT = "B"
+
+SEMANTIC_TYPE_NAMES = {
+  SemanticTypePaths.FISH : "Fish",
+  SemanticTypePaths.DISEASE : "Disease",
+  SemanticTypePaths.DRUG : "Drug",
+  SemanticTypePaths.GENE : "Gene",
+  SemanticTypePaths.ENTITY : "Entity",
+  SemanticTypePaths.EVENT : "Event"
+}
 
 
 IMPORTANT_TYPE_PATHS = [SemanticTypePaths.FISH, SemanticTypePaths.DISEASE,

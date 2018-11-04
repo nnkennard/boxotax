@@ -121,7 +121,8 @@ class SimpleNode(object):
 
 def main():
   #config_line = "config_msh_mth	CHD|RN	None	None	None	None"
-  for path, name in umls_lib.SEMANTIC_TYPE_NAMES.items(): 
+  #for path, name in umls_lib.SEMANTIC_TYPE_NAMES.items(): 
+  for path, name in [("None","")]:
     config_line = "".join(["config_msh_mth	CHD|RN	None	None	None	",
        path])
     conn = sqlite3.connect(umls_lib.DB_FILE)
