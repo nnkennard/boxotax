@@ -8,6 +8,14 @@ import collections
 
 class LabelPrefix(object):
   FMA = "http://bioontology.org/projects/ontologies/fma/fmaOwlDlComponent_2_0#"
+  NCI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#"
+  SNOMED = "http://www.ihtsdo.org/snomed#"
+
+LABEL_PREFIX_MAP ={
+    "fma": LabelPrefix.FMA,
+    "nci": LabelPrefix.NCI,
+    "snomed": LabelPrefix.SNOMED,
+    }
 
 ROOT_STR = "!!ROOT"
 # I just want it to get index 0
@@ -26,17 +34,19 @@ def unprefix(input_string, prefix):
   return input_string[len(prefix):]
 
 def main():
-  owl_file, output_prefix = sys.argv[1], sys.argv[2]
+  owl_file, dataset = sys.argv[1:3]
 
   g = rdflib.Graph()
   result = g.parse(owl_file)
   graph = collections.defaultdict(set)
 
+  label_prefix = LABEL_PREFIX_MAP[dataset]
+
   for subj, pred, obj in g:
     if str(pred) == oaei_lib.RDFPredicates.SUBCLASS_OF:
-      if subj.startswith(LabelPrefix.FMA) and obj.startswith(LabelPrefix.FMA):
-        s, o = unprefix(str(subj), LabelPrefix.FMA), unprefix(str(obj),
-            LabelPrefix.FMA)
+      if subj.startswith(label_prefix) and obj.startswith(label_prefix):
+        s, o = unprefix(str(subj), label_prefix), unprefix(str(obj),
+            label_prefix)
         graph[o].add(s)
 
   superclass_nodes = set(graph.keys())
@@ -53,12 +63,12 @@ def main():
   transitive_edges = []
   get_transitive_closure(graph, ROOT_STR, [], [], transitive_edges)
 
-  unary_filename = output_prefix + ".unary"
+  unary_filename = owl_file + ".unary"
   with open(unary_filename, 'w') as f:
     for node in sorted_nodes:
       f.write("\t".join([node, node_to_index[node]]) + "\n")
 
-  pairwise_filename = output_prefix + ".pairwise"
+  pairwise_filename = owl_file + ".pairwise"
   with open(pairwise_filename, 'w') as f:
     for parent, child in transitive_edges:
       f.write("\t".join([node_to_index[parent], node_to_index[child],
