@@ -4,19 +4,13 @@ import rdflib
 import oaei_lib
 import collections
 
+# TODO: WRITE A TEST FOR THIS OMG
 
 class LabelPrefix(object):
   FMA = "http://bioontology.org/projects/ontologies/fma/fmaOwlDlComponent_2_0#"
 
 ROOT_STR = "!!ROOT"
 # I just want it to get index 0
-
-def BFS(root_str, graph, edges):
-  """BFS over the tree, adding (parent, child) pairs to `edges`."""
-  for child in sorted(graph[root_str]):
-    edges.append((root_str, child))
-  for child in graph[root_str]:
-    BFS(child, graph, edges)
 
 def get_transitive_closure(graph, root, ancestor_list, seen, edges):
   if root in seen:
@@ -56,18 +50,19 @@ def main():
   sorted_nodes = sorted(all_nodes)
   node_to_index = {node:str(i) for i, node in enumerate(sorted_nodes)}
 
-  dummy_graph= collections.defaultdict(set)
-  dummy_graph["0"] = set(["1","2"])
-  dummy_graph["1"] = set(["3","4"])
-  dummy_graph["2"] = set(["5","6"])
-  dummy_graph["3"] = set(["7"])
-
   transitive_edges = []
   get_transitive_closure(graph, ROOT_STR, [], [], transitive_edges)
-  for parent, child in transitive_edges:
-    print("\t".join([node_to_index[parent], node_to_index[child],
-      parent, child]))
 
+  unary_filename = output_prefix + ".unary"
+  with open(unary_filename, 'w') as f:
+    for node in sorted_nodes:
+      f.write("\t".join([node, node_to_index[node]]) + "\n")
+
+  pairwise_filename = output_prefix + ".pairwise"
+  with open(pairwise_filename, 'w') as f:
+    for parent, child in transitive_edges:
+      f.write("\t".join([node_to_index[parent], node_to_index[child],
+        parent, child])+"\n")
 
 
 if __name__ == "__main__":
