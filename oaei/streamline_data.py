@@ -2,6 +2,7 @@ import pickle
 import sys
 import rdflib
 import oaei_lib
+import collections
 
 
 class LabelPrefix(object):
@@ -10,14 +11,21 @@ class LabelPrefix(object):
 ROOT_STR = "!!ROOT"
 # I just want it to get index 0
 
-def BFS(root_oaei_node, oaei_nodes, edges):
+def BFS(root_str, graph, edges):
   """BFS over the tree, adding (parent, child) pairs to `edges`."""
-  own_uid = root_oaei_node.uid
-  for subclass in root_oaei_node.subclasses:
-    edges.append((own_uid, oaei_nodes[subclass].uid))
-  for subclass in root_oaei_node.subclasses:
-    BFS(oaei_nodes[subclass], oaei_nodes, edges)
+  for child in sorted(graph[root_str]):
+    edges.append((root_str, child))
+  for child in graph[root_str]:
+    BFS(child, graph, edges)
 
+def get_transitive_closure(graph, root, ancestor_list, seen, edges):
+  if root in seen:
+    return
+  seen.append(root)
+  for child in sorted(graph[root]):
+    get_transitive_closure(graph, child, ancestor_list+[root], seen, edges)
+  for ancestor in ancestor_list:
+    edges.append((ancestor, root))
 
 def unprefix(input_string, prefix):
   assert input_string.startswith(prefix)
@@ -28,41 +36,37 @@ def main():
 
   g = rdflib.Graph()
   result = g.parse(owl_file)
-  oaei_nodes = {}
-
-  for subj, pred, obj in g:
-    if str(pred) == oaei_lib.RDFPredicates.LABEL:
-      s = unprefix(str(subj), LabelPrefix.FMA)
-      oaei_nodes[s] = oaei_lib.OAEINode(s, obj)
+  graph = collections.defaultdict(set)
 
   for subj, pred, obj in g:
     if str(pred) == oaei_lib.RDFPredicates.SUBCLASS_OF:
       if subj.startswith(LabelPrefix.FMA) and obj.startswith(LabelPrefix.FMA):
         s, o = unprefix(str(subj), LabelPrefix.FMA), unprefix(str(obj),
             LabelPrefix.FMA)
+        graph[o].add(s)
 
-        # This should include all nodes that participate in the subclass relation
-        # -- still scary though
-        if s in oaei_nodes and o in oaei_nodes:
-          oaei_nodes[o].subclasses.append(s)
-
-  all_nodes = set(oaei_nodes.keys())
-  subclass_nodes = set(sum([x.subclasses for x in oaei_nodes.values()], []))
+  superclass_nodes = set(graph.keys())
+  subclass_nodes = set(set.union(*graph.values()))
+  all_nodes = superclass_nodes.union(subclass_nodes)
   non_subclass_nodes = all_nodes - subclass_nodes
 
-  root_node = oaei_lib.OAEINode(ROOT_STR, ROOT_STR)
-  root_node.subclasses = list(non_subclass_nodes)
-  oaei_nodes[ROOT_STR] = root_node
+  graph[ROOT_STR] = list(non_subclass_nodes)
+  all_nodes.add(ROOT_STR)
 
-  sorted_nodes = sorted(oaei_nodes.keys())
+  sorted_nodes = sorted(all_nodes)
   node_to_index = {node:str(i) for i, node in enumerate(sorted_nodes)}
 
-  edges = []
-  BFS(root_node, oaei_nodes, edges)
-  for parent, child  in edges:
+  dummy_graph= collections.defaultdict(set)
+  dummy_graph["0"] = set(["1","2"])
+  dummy_graph["1"] = set(["3","4"])
+  dummy_graph["2"] = set(["5","6"])
+  dummy_graph["3"] = set(["7"])
+
+  transitive_edges = []
+  get_transitive_closure(graph, ROOT_STR, [], [], transitive_edges)
+  for parent, child in transitive_edges:
     print("\t".join([node_to_index[parent], node_to_index[child],
       parent, child]))
-
 
 
 
