@@ -8,11 +8,15 @@ ROOT_INDEX = "0"
 
 
 def assign_conditional_probabilities(root_node, conditional_probabilities,
-    graph):
+    graph, probabilities):
   if root_node in graph:
     for child in graph[root_node]:
+      conditional_probabilities[child][root_node] =probabilities[
+          child]/probabilities[root_node]
       conditional_probabilities[root_node][child] = 1.0
-      assign_conditional_probabilities(child, conditional_probabilities, graph)
+      assign_conditional_probabilities(child, conditional_probabilities,
+          graph, probabilities)
+
 
 
 def assign_probabilities(root_node, probabilities, graph):
@@ -35,7 +39,7 @@ def bfs_order(root, graph):
         and child not in to_visit]
   return bfs  
 
-def intransitivize(root_node, graph):
+def transitive_reduction(root_node, graph):
   all_nodes = set(graph.keys())
   all_nodes.update(sum(graph.values(), []))
   intransitive_graph_constructor = collections.defaultdict(set)
@@ -69,21 +73,23 @@ def main():
   subclass_only_nodes = subclass_nodes - superclass_nodes
 
 
-  intransitive_graph = intransitivize(ROOT_INDEX, graph)
+  intransitive_graph = transitive_reduction(ROOT_INDEX, graph)
 
 
   probabilities = {}
   for node in subclass_only_nodes:
     probabilities[node] = DUMMY_BASE_PROBABILITY
 
-
   total = assign_probabilities(ROOT_INDEX, probabilities, intransitive_graph)
 
   conditional_probabilities = collections.defaultdict(dict)
 
   assign_conditional_probabilities(ROOT_INDEX,
-      conditional_probabilities, graph)
+      conditional_probabilities, graph, probabilities)
 
+  for a, b_probs in conditional_probabilities.iteritems():
+    for b, conditional_prob in b_probs.iteritems():
+      print(a+"\t"+b+"\t"+str(conditional_prob))
 
 
   for key, value in probabilities.iteritems():
