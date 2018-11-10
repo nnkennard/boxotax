@@ -84,22 +84,21 @@ def main():
   for leaf in leaves:
     unary_weights[leaf] = DUMMY_LEAF_WEIGHT
 
-  total = assign_weights(ROOT_INDEX, unary_weights, intransitive_edges)
+  total_weight = assign_weights(ROOT_INDEX, unary_weights, intransitive_edges)
 
   # Calculate conditional probabilities using transitive closure
   conditional_probabilities = collections.defaultdict(dict)
-
   assign_conditional_probabilities(ROOT_INDEX,
       conditional_probabilities, edges, unary_weights)
 
-  for a, b_probs in conditional_probabilities.items():
+  with open(input_file + ".unary", 'w') as f:
+    for node, weight in unary_weights.items():
+      f.write("\t".join([node, str(weight/total_weight)]))
+
+  with open(input_file + ".conditional", 'w') as f:
+   for a, b_probs in conditional_probabilities.items():
     for b, conditional_prob in b_probs.items():
-      print(a+"\t"+b+"\t"+str(conditional_prob))
-
-
-  unary_probabilities = {}
-  for key, value in unary_weights.items():
-    unary_probabilities[key] = value/total
+      f.write("\t".join([a, b, conditional_prob]))
 
 if __name__ == "__main__":
   main()
