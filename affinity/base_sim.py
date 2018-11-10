@@ -1,9 +1,13 @@
 import nltk
 import re
+from nltk.corpus import stopwords
+from nltk.metrics import edit_distance
+import sys
 
 CAMEL_CASE_SPLITTER = re.compile('([A-Z][a-z]+)')
+ENGLISH_STOPWORDS = stopwords.words('english')
 
-def treat_string(input_string):
+def normalize(input_string):
   camel_case_split = re.split(CAMEL_CASE_SPLITTER, input_string)
   if len(camel_case_split) > 1:
     atoms = [word for word in camel_case_split if word]
@@ -18,41 +22,35 @@ def treat_string(input_string):
       else:
         atoms = [input_string]
 
-  return " ".join(atoms)
+  return [atom.lower() for atom in atoms if atom not in ENGLISH_STOPWORDS]
 
+def read_labels_from_file(filename):
+  label_list = []
+  with open(filename, 'r') as f:
+    for line in f:
+      label_list.append(line.strip())
+  return label_list
 
-
-class Concept(object):
-  def __init__(self, label, definition):
-    self.label = label
-    self.definition = definition
-    self.normalize()
-    pass
-
-  def normalize(self):
-    self.label_n = normalize(self.label)
-    self.definition_n = normalize(self.definition)
-
-def base_sim(main_concept, aux_concept):
-  main_label = main_concept.label
-  aux_label = aux_concept.label
-
-  # If labels are identical, return similarity of 1
-  if main_label == aux_label:
-    return 1
-  main_label = treat_string(main_label)
-  aux_label = treat_string(aux_label)
-  if main_label == aux_label:
-    return 1
-  main_label = remove_stopwords(main_label)
-  aux_label = remove_stopwords(aux_label)
+def phrase_edit_distance(main_phrase, aux_phrase):
+  distances = []
+  for main_word in normalize(main_phrase):
+    for aux_word in normalize(aux_phrase):
+      distances.append(edit_distance(main_word, aux_word))
+  if len(distances) < 3:
+    return float(sum(distances))/len(distances)
+  else:
+    return sum(sorted(distances)[-3:])/3.0
 
 def main():
-  print(treat_string("OnlyGoBackwards"))
-  print(treat_string("onlyGoBackwards"))
-  print(treat_string("only-go-backwards"))
-  print(treat_string("only_go_backwards"))
-  pass
+  main_label_file, aux_label_file = sys.argv[1:3]
+
+  main_labels = read_labels_from_file(main_label_file)
+  aux_labels = read_labels_from_file(aux_label_file)
+
+  for main_label in main_labels:
+    for aux_label in aux_labels:
+      print("\t".join([main_label, aux_label,
+        str(phrase_edit_distance(main_label, aux_label))]))
 
 if __name__ == "__main__":
   main()
