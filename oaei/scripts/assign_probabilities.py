@@ -61,17 +61,25 @@ def transitive_reduction(root, edges):
 
   return intransitive_edges_constructor
 
+def assign_probabilities(input_file, info_files):
 
-def main():
-
-  input_file = sys.argv[1]
-  edges = collections.defaultdict(list)
-
+  # Determine input file edges to account for in probabilities
+  undirected_input_edges = []
+  input_nodes = set()
   with open(input_file, 'r') as f:
     for line in f:
       hyper, hypo, _, _ = line.split()
-      edges[hyper].append(hypo)
+      undirected_input_edges += [(hyper, hypo), (hypo, hyper)]
+      input_nodes.update([hypo, hyper])
 
+  assert input_file in info_files
+  edges = collections.defaultdict(list)
+
+  for info_file in info_files:
+    with open(info_file, 'r') as f:
+      for line in f:
+        hyper, hypo, _, _ = line.split()
+        edges[hyper].append(hypo)
   hyper_nodes = set(edges.keys())
   hypo_nodes = set(sum(edges.values(),[]))
   leaves = hypo_nodes - hyper_nodes
@@ -93,12 +101,25 @@ def main():
 
   with open(input_file + ".unary", 'w') as f:
     for node, weight in unary_weights.items():
-      f.write("\t".join([node, str(weight/total_weight)]))
+      if node in input_nodes:
+        f.write("\t".join([node, str(weight/total_weight)]) + "\n")
 
   with open(input_file + ".conditional", 'w') as f:
    for a, b_probs in conditional_probabilities.items():
     for b, conditional_prob in b_probs.items():
-      f.write("\t".join([a, b, conditional_prob]))
+      if (a, b) in undirected_input_edges:
+        f.write("\t".join([a, b, str(conditional_prob)]) + "\n")
+
+
+def main():
+  train_file = sys.argv[1]
+  dev_file = train_file.replace(".train", ".dev")
+  test_file = train_file.replace(".train", ".test")
+
+  assign_probabilities(train_file, [train_file])
+  assign_probabilities(dev_file, [train_file, dev_file])
+  assign_probabilities(test_file, [train_file, dev_file, test_file])
+
 
 if __name__ == "__main__":
   main()

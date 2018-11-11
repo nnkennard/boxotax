@@ -1,4 +1,5 @@
 import nltk
+from nltk.corpus import wordnet
 import re
 from nltk.corpus import stopwords
 from nltk.metrics import edit_distance

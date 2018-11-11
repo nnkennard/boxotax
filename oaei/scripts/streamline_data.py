@@ -63,12 +63,12 @@ def main():
   transitive_edges = []
   get_transitive_closure(graph, ROOT_STR, [], [], transitive_edges)
 
-  unary_filename = owl_file + ".unary"
+  unary_filename = owl_file.replace(".owl", ".unary")
   with open(unary_filename, 'w') as f:
     for node in sorted_nodes:
       f.write("\t".join([node, node_to_index[node]]) + "\n")
 
-  pairwise_filename = owl_file + ".pairwise"
+  pairwise_filename = owl_file.replace(".owl", ".out")
   with open(pairwise_filename, 'w') as f:
     for parent, child in transitive_edges:
       f.write("\t".join([node_to_index[parent], node_to_index[child],
