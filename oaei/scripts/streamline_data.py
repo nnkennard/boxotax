@@ -6,17 +6,6 @@ import collections
 
 # TODO: WRITE A TEST FOR THIS OMG
 
-class LabelPrefix(object):
-  FMA = "http://bioontology.org/projects/ontologies/fma/fmaOwlDlComponent_2_0#"
-  NCI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#"
-  SNOMED = "http://www.ihtsdo.org/snomed#"
-
-LABEL_PREFIX_MAP ={
-    "fma": LabelPrefix.FMA,
-    "nci": LabelPrefix.NCI,
-    "snomed": LabelPrefix.SNOMED,
-    }
-
 ROOT_STR = "!!ROOT"
 # I just want it to get index 0
 
@@ -29,25 +18,17 @@ def get_transitive_closure(graph, root, ancestor_list, seen, edges):
   for ancestor in ancestor_list:
     edges.append((ancestor, root))
 
-def unprefix(input_string, prefix):
-  assert input_string.startswith(prefix)
-  return input_string[len(prefix):]
-
 def main():
-  owl_file, dataset = sys.argv[1:3]
+  owl_file = sys.argv[1]
 
   g = rdflib.Graph()
   result = g.parse(owl_file)
   graph = collections.defaultdict(set)
 
-  label_prefix = LABEL_PREFIX_MAP[dataset]
-
   for subj, pred, obj in g:
     if str(pred) == oaei_lib.RDFPredicates.SUBCLASS_OF:
-      if subj.startswith(label_prefix) and obj.startswith(label_prefix):
-        s, o = unprefix(str(subj), label_prefix), unprefix(str(obj),
-            label_prefix)
-        graph[o].add(s)
+      if oaei_lib.is_valid_label(subj) and oaei_lib.is_valid_label(obj):
+        graph[oaei_lib.strip_prefix(obj)].add(oaei_lib.strip_prefix(subj))
 
   superclass_nodes = set(graph.keys())
   subclass_nodes = set(set.union(*graph.values()))
