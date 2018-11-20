@@ -81,7 +81,7 @@ def main():
   graph, graph_weights = construct_sim_prop_graph(
       graph_A, graph_A_nodes, graph_B, graph_B_nodes)
   print(graph_weights)
-  for _ in range(10):
+  for _ in range(20):
     new_weights = run_iteration(graph, graph_weights)
     print(new_weights)
 
