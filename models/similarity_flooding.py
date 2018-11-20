@@ -1,19 +1,13 @@
-"""Implementation of Similarity Flooding Algorithm."""
+"""Implementation of Similarity Flooding Algorithm.
+
+TODO: Describe more stuff
+"""
 
 import collections
 import base_sim
 
 
-
-class NodePair(object):
-  def __init__(self, a_label, b_label):
-    self.a_label = a_label
-    self.b_label = b_label
-    self.children = []
-
-
-  
-
+# Fake graphs
 graph_A = {
     'abcd': ['abcd1', 'abcd2'],
     'abcd1': ['abcd2'],
@@ -30,7 +24,25 @@ graph_B = {
 
 graph_B_nodes = ['bcde', 'bcde1', 'bcde2']
 
+
+class NodePair(object):
+  def __init__(self, a_label, b_label):
+    self.a_label = a_label
+    self.b_label = b_label
+    self.children = []
+
+
 def construct_sim_prop_graph(a_graph, a_nodes, b_graph, b_nodes):
+  """Construct similarity propagation graph.
+
+  Every pair of (node_a, node_b) gets a node in the similarity propagation
+  graph.
+
+  For every edge between (parent_a, child_a), an edge is added between
+  (parent_a, x_b) and (child_a, y_b) where x_b and y_b are nodes in graph B and
+  x is y's parent. The reverse edges are added as well.
+  """
+
   node_pairs = set()
   node_pair_graph = collections.defaultdict(list)
   for a_node in a_nodes:
@@ -42,14 +54,22 @@ def construct_sim_prop_graph(a_graph, a_nodes, b_graph, b_nodes):
           node_pair_graph[(a_child, b_child)].append((a_node, b_node))
           node_pairs.add((a_child, b_child))
 
-  print(node_pairs)
-  print(node_pair_graph)
-
   node_pair_weights = collections.defaultdict(float)
   for node_pair in node_pairs:
     node_pair_weights[node_pair] = base_sim.phrase_edit_distance(*node_pair)
     print(node_pair_weights[node_pair])
-  return node_pair_graph
+  return node_pair_graph, node_pair_weights
+
+def normalize(weights):
+  total_weight = sum(weights.values())
+  return {key:value/total_weight for key, value in weights.items()}
+
+def run_iteration(prop_graph, prop_graph_weights):
+  weight_accumulator = collections.defaultdict(float)
+  for node, children in prop_graph.items():
+    for child in children:
+      weight_accumulator[child] += prop_graph_weights[node]
+  return normalize(weight_accumulator)    
 
 def compute_fixpoint():
   weight_map = collections.defaultdict(float)
@@ -58,8 +78,12 @@ def compute_fixpoint():
   pass
 
 def main():
-  construct_sim_prop_graph(graph_A, graph_A_nodes, graph_B, graph_B_nodes)
-  pass
+  graph, graph_weights = construct_sim_prop_graph(
+      graph_A, graph_A_nodes, graph_B, graph_B_nodes)
+  print(graph_weights)
+  for _ in range(10):
+    new_weights = run_iteration(graph, graph_weights)
+    print(new_weights)
 
 if __name__ == "__main__":
   main()
