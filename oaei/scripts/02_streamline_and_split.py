@@ -10,13 +10,14 @@ PAIR_TO_DATASET_NAMES = {
 def main():
   data_path = sys.argv[1]
 
+  unused_large = """
   for dataset in ["fma", "snomed", "nci"]:
     file_path = "".join([data_path, '/large/', dataset, '.owl'])
     subprocess.call(["python", "streamline_data.py", file_path])
     file_path = "".join([data_path, '/large/', dataset, '.out'])
     subprocess.call(["python", "split_test_train.py", file_path])
 
-  unused_small = """
+  """
   for pair, datasets in PAIR_TO_DATASET_NAMES.items():
     for dataset in datasets:
       print("".join([
@@ -27,7 +28,6 @@ def main():
       subprocess.call(["python", "streamline_data.py", file_path, dataset ])
       file_path = "".join([data_path, '/small/', pair, '/', dataset, '.out'])
       subprocess.call(["python", "split_test_train.py", file_path])
-"""
 
 if __name__ == "__main__":
   main()

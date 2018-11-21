@@ -61,7 +61,7 @@ def transitive_reduction(root, edges):
 
   return intransitive_edges_constructor
 
-def assign_probabilities(input_file, info_files):
+def assign_probabilities(input_file, info_files, vocab):
 
   # Determine input file edges to account for in probabilities
   undirected_input_edges = []
@@ -99,10 +99,17 @@ def assign_probabilities(input_file, info_files):
   assign_conditional_probabilities(ROOT_INDEX,
       conditional_probabilities, edges, unary_weights)
 
+  print(input_nodes)
+  print(unary_weights)
+
   with open(input_file + ".unary", 'w') as f:
-    for node, weight in unary_weights.items():
-      if node in input_nodes:
-        f.write("\t".join([node, str(weight/total_weight)]) + "\n")
+    for node in [str(i) for i in range(len(vocab))]:
+      if str(node) in input_nodes and node in unary_weights:
+        prob = unary_weights[node]/total_weight
+      else:
+        print(node, "not in input nodes")
+        prob = 0.0
+      f.write("\t".join([node, str(prob)]) + "\n")
 
   with open(input_file + ".conditional", 'w') as f:
    for a, b_probs in conditional_probabilities.items():
@@ -116,9 +123,18 @@ def main():
   dev_file = train_file.replace(".train", ".dev")
   test_file = train_file.replace(".train", ".test")
 
-  assign_probabilities(train_file, [train_file])
-  assign_probabilities(dev_file, [train_file, dev_file])
-  assign_probabilities(test_file, [train_file, dev_file, test_file])
+  vocab_file = train_file.replace(".out.train", ".vocab")
+  print(train_file)
+  print(vocab_file)
+  vocab = []
+  with open(vocab_file, 'r') as f:
+    for line in f:
+      word, _ = line.strip().split()
+      vocab.append(word)
+
+  assign_probabilities(train_file, [train_file], vocab)
+  assign_probabilities(dev_file, [train_file, dev_file], vocab)
+  assign_probabilities(test_file, [train_file, dev_file, test_file], vocab)
 
 
 if __name__ == "__main__":
