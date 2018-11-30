@@ -3,27 +3,9 @@
 TODO: Describe more stuff
 """
 
-import collections
 import base_sim
-
-
-# Fake graphs
-graph_A = {
-    'abcd': ['abcd1', 'abcd2'],
-    'abcd1': ['abcd2'],
-    'abcd2': []
-    }
-
-graph_A_nodes = ['abcd', 'abcd1', 'abcd2']
-
-graph_B = {
-    'bcde': ['bcde1', 'bcde2'],
-    'bcde2': ['bcde1'],
-    'bcde1': []
-    }
-
-graph_B_nodes = ['bcde', 'bcde1', 'bcde2']
-
+import collections
+import fake_graphs
 
 class NodePair(object):
   def __init__(self, a_label, b_label):
@@ -69,21 +51,19 @@ def run_iteration(prop_graph, prop_graph_weights):
   for node, children in prop_graph.items():
     for child in children:
       weight_accumulator[child] += prop_graph_weights[node]
-  return normalize(weight_accumulator)    
+  return normalize(weight_accumulator)
 
-def compute_fixpoint():
+def compute_fixpoint(graph, graph_weights):
   weight_map = collections.defaultdict(float)
-  # Assign initial similarity scores
-  # Propagate
-  pass
-
-def main():
-  graph, graph_weights = construct_sim_prop_graph(
-      graph_A, graph_A_nodes, graph_B, graph_B_nodes)
-  print(graph_weights)
   for _ in range(20):
     new_weights = run_iteration(graph, graph_weights)
     print(new_weights)
+
+def main():
+  graph, graph_weights = construct_sim_prop_graph(
+      fake_graphs.graph_A, fake_graphs.graph_A_nodes, fake_graphs.graph_B,
+      fake_graphs.graph_B_nodes)
+  compute_fixpoint(graph, graph_weights)
 
 if __name__ == "__main__":
   main()
