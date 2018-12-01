@@ -17,6 +17,7 @@ class BoxDataset(Dataset):
     self.len = len(data)
     self.X_train = torch.from_numpy(data[:,:2].astype(np.long))
     self.y_train = torch.from_numpy(data[:,2].astype(np.float32))
+    print(self.X_train.shape)
 
   def __getitem__(self, index):
     return self.X_train[index], self.y_train[index]
@@ -35,7 +36,6 @@ class Boxes(nn.Module):
     
   def forward(self, X):
     """Returns box embeddings for ids"""
-    #set_trace()
     x = self.boxes[X]
     o = cond_probs(x[:,0,:,:], x[:,1,:,:])
     print(o)
@@ -49,14 +49,12 @@ def volumes(boxes):
   return r
 
 def intersections(boxes1, boxes2):
-  #set_trace()
   intersections_min = torch.max(boxes1[:, MIN_IND, :], boxes2[:, MIN_IND, :])
-  print(intersections_min)
   intersections_max = torch.min(boxes1[:, MAX_IND, :], boxes2[:, MAX_IND, :])
-  print(intersections_max)
   apap = torch.stack([intersections_min, intersections_max], 1).clamp(0)
   return apap
 
 def cond_probs(boxes1, boxes2):
-  return volumes(intersections(boxes1, boxes2))/volumes(boxes2)
+  vols =  volumes(intersections(boxes1, boxes2))
+  return vols/volumes(boxes2)
 

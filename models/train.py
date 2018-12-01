@@ -8,6 +8,9 @@ import numpy as np
 
 
 def main():
+  np.random.seed(89)
+  torch.manual_seed(43)
+
   train_ds = box_lib.BoxDataset("data/sample/train.txt")
   train_dl = DataLoader(train_ds, batch_size=18, shuffle=True, num_workers=4)
 

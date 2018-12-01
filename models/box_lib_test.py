@@ -32,8 +32,9 @@ def test_volumes():
 
 def test_intersections():
   boxes = get_sample_boxes()
-  intersections = box_lib.intersections(torch.from_numpy(np.array([boxes[0]])),
-                                        torch.from_numpy(np.array([boxes[1]])))
+  boxes_1 = torch.from_numpy(np.array([boxes[0]]))
+  boxes_2 = torch.from_numpy(np.array([boxes[1]]))
+  intersections = box_lib.intersections(boxes_1, boxes_2)
   np.testing.assert_array_equal(intersections, np.array([
     [[3, 4], [5, 5]
       ]
