@@ -29,8 +29,6 @@ class BoxDataset(Dataset):
 class Boxes(nn.Module):
   def __init__(self, num_boxes, dim):
     super(Boxes, self).__init__()
-    #box_mins = torch.rand(num_boxes, dim)
-    #box_maxs = box_mins + torch.rand(num_boxes, dim) * (1 - box_mins)
     box_mins = torch.rand(num_boxes, dim) * 0.0001
     box_maxs = 1 - torch.rand(num_boxes, dim) * 0.0001
     boxes = torch.stack([box_mins, box_maxs], dim=1)
@@ -39,11 +37,8 @@ class Boxes(nn.Module):
   def forward(self, X):
     """Returns box embeddings for ids"""
     x = self.boxes[X]
-    o = cond_probs(x[:,0,:,:], x[:,1,:,:])
-    print("Cond probs")
-    print(o)
-    assert all(np.less_equal(i.detach().numpy(), 1.0) for i in o)
-    return o
+    norms = torch.norm(x[MAX_IND] - x[MIN_IND])
+    return cond_probs(x[:,0,:,:], x[:,1,:,:]), norms
 
 
 MIN_IND, MAX_IND = 0, 1

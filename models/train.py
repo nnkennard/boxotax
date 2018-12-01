@@ -22,28 +22,30 @@ def main():
   N_EPOCHS = 500
 
   for epoch in range(N_EPOCHS):
-      
+
       # Train
       model.train()  # IMPORTANT
-      
+
       running_loss, correct = 0.0, 0
       for X, y in train_dl:
         #set_trace()
         #X, y = X.to(device), y.to(device)
 
+        lr  = 0.0001
+
         optimizer.zero_grad()
         with torch.set_grad_enabled(True):
-          y_ = model(X)
-          loss = criterion(y_, y)
+          y_, norms = model(X)
+          loss = criterion(y_, y) + lr * norms
           print(loss)
 
         loss.backward()
-        
+
         for param in model.parameters():
           print(param.grad.data.sum())
         print(model.boxes[0])
         optimizer.step()
-        
+
         # Statistics
         print("    batch loss: "+str(loss.item()))
         running_loss += loss.item() * X.shape[0]
