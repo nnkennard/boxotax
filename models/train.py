@@ -19,7 +19,7 @@ def main():
   optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 
-  N_EPOCHS = 200
+  N_EPOCHS = 500
 
   for epoch in range(N_EPOCHS):
       
