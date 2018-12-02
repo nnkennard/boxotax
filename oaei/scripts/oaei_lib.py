@@ -56,3 +56,12 @@ def strip_prefix(label):
   for dataset, prefix in LABEL_PREFIX_MAP.items():
     if label.startswith(prefix):
       return dataset + "_" +label[len(prefix):]
+
+
+PAIR_TO_DATASET_NAMES = {
+    "fma2nci": ["fma", "nci"],
+    "fma2snomed": ["fma", "snomed"],
+    "snomed2nci": ["nci", "snomed"]
+    }
+
+
