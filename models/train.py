@@ -33,7 +33,7 @@ def main():
 
   train_ds = box_lib.BoxDataset(FLAGS.train_path)
   train_dl = DataLoader(train_ds, batch_size=FLAGS.batch_size,
-      shuffle=True, num_workers=4)
+      shuffle=True, num_workers=0)
 
   model = box_lib.Boxes(train_ds.vocab_size, FLAGS.embedding_size)
   criterion = nn.MSELoss()
@@ -46,7 +46,8 @@ def main():
 
     running_loss, correct = 0.0, 0
     for X, y in train_dl:
-      X, y = X.to(FLAGS.device), y.to(FLAGS.device)
+      torch.cuda.empty_cache()
+      #X, y = X.to(FLAGS.device), y.to(FLAGS.device)
 
       #TODO: Use more canonical regularization maybe
       with torch.set_grad_enabled(True):
