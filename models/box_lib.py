@@ -18,19 +18,21 @@ class BoxDataset(Dataset):
   def __init__(self, csv_path):
     data = np.loadtxt(csv_path)
     self.len = len(data)
+
     # First two columns are the two entity indices, third is cond prob
     self.X_train = torch.from_numpy(data[:,:2].astype(np.long))
     self.y_train = torch.from_numpy(data[:,2].astype(np.float32))
+
     # TODO: add test
     vocab = set(np.ravel(data[:,:2]).tolist())
     self.vocab_size = len(vocab)
-    
 
   def __getitem__(self, index):
     return self.X_train[index], self.y_train[index]
 
   def __len__(self):
     return self.len
+
 
 # Model = a tensor of boxes
 class Boxes(nn.Module):
@@ -50,15 +52,21 @@ class Boxes(nn.Module):
 
 
 def volumes(boxes):
-  r = torch.nn.functional.relu(
+  """Calculate (soft) volumes of a tensor containing boxes"""
+  return torch.nn.functional.relu(
       boxes[:,MAX_IND,:] - boxes[:, MIN_IND,:]).prod(1)
-  return r
+
 
 def intersections(boxes1, boxes2):
+  """Calculate pairwise intersection boxes of two tensors containing boxes."""
   intersections_min = torch.max(boxes1[:, MIN_IND, :], boxes2[:, MIN_IND, :])
   intersections_max = torch.min(boxes1[:, MAX_IND, :], boxes2[:, MAX_IND, :])
   return torch.stack([intersections_min, intersections_max], 1)
 
 def cond_probs(boxes1, boxes2):
+  """Calculate conditional probabilities of tensors of boxes.
+
+  Pairwise, conditions each box in boxes1 on the corresponding box in boxes2.
+  """
   return volumes(intersections(boxes1, boxes2)) / volumes(boxes2)
 
