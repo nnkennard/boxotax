@@ -1,3 +1,4 @@
+import sklearn.metrics
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -6,17 +7,21 @@ import numpy as np
 
 MIN_IND, MAX_IND = range(2)
 
-HYPO, HYPER, UNRELATED = range(3)
+UNRELATED, HYPO, HYPER = range(3)
 
-def label_cond_prob(prob):
-  # TODO: maybe isclose is not precise enough and we need a threshold
-  if np.isclose(prob, 0.0):
+def label(x):
+  if x < 0.05:
     return UNRELATED
-  elif not np.isclose(prob, 1.0):
+  elif x > 0.99:
     return HYPER
   else:
     return HYPO
 
+label_v = np.vectorize(label)
+
+def confusion(y_true, y_pred):
+  print sklearn.metrics.confusion_matrix(label_v(y_true.detach().numpy()),
+                                         label_v(y_pred.detach().numpy()))
 
 
 # Dataset for pairs

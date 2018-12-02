@@ -27,7 +27,6 @@ def set_random_seed(seed):
   np.random.seed(seed)
   torch.manual_seed(seed)
 
-
 def main():
   set_random_seed(FLAGS.random_seed)
 
@@ -54,7 +53,7 @@ def main():
         loss = criterion(y_, y) + FLAGS.l2_lambda * norms
 
       if epoch % 25 == 0:
-        print str(y) + "\t" + str(y_)
+        box_lib.confusion(y, y_)
 
       optimizer.zero_grad()
       loss.backward()
