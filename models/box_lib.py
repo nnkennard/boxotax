@@ -23,7 +23,7 @@ def confusion(dataset, model):
   y_pred, _ = model(dataset.X_train)
   print sklearn.metrics.confusion_matrix(
       label_v(dataset.y_train),
-      label_v(y_pred.detach().numpy()))
+      label_v(y_pred.detach().cpu().numpy()))
 
 def set_random_seed(seed):
   np.random.seed(seed)
