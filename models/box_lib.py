@@ -10,18 +10,24 @@ MIN_IND, MAX_IND = range(2)
 UNRELATED, HYPO, HYPER = range(3)
 
 def label(x):
-  if x < 0.05:
+  if x < 0.1:
     return UNRELATED
-  elif x > 0.99:
+  elif x > 0.95:
     return HYPER
   else:
     return HYPO
 
 label_v = np.vectorize(label)
 
-def confusion(y_true, y_pred):
-  print sklearn.metrics.confusion_matrix(label_v(y_true.detach().numpy()),
-                                         label_v(y_pred.detach().numpy()))
+def confusion(dataset, model):
+  y_pred, _ = model(dataset.X_train)
+  print sklearn.metrics.confusion_matrix(
+      label_v(dataset.y_train),
+      label_v(y_pred.detach().numpy()))
+
+def set_random_seed(seed):
+  np.random.seed(seed)
+  torch.manual_seed(seed)
 
 
 # Dataset for pairs
