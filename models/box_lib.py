@@ -21,6 +21,10 @@ class BoxDataset(Dataset):
     # First two columns are the two entity indices, third is cond prob
     self.X_train = torch.from_numpy(data[:,:2].astype(np.long))
     self.y_train = torch.from_numpy(data[:,2].astype(np.float32))
+    # TODO: add test
+    vocab = set(np.ravel(data[:,:2]).tolist())
+    self.vocab_size = len(vocab)
+    
 
   def __getitem__(self, index):
     return self.X_train[index], self.y_train[index]

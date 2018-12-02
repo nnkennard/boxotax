@@ -35,7 +35,7 @@ def main():
 
   # TODO: get vocab size
 
-  model = box_lib.Boxes(6, FLAGS.embedding_size)
+  model = box_lib.Boxes(train_ds.vocab_size, FLAGS.embedding_size)
   criterion = nn.MSELoss()
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate)
 
