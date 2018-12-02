@@ -123,13 +123,13 @@ def main():
   dev_file = train_file.replace(".train", ".dev")
   test_file = train_file.replace(".train", ".test")
 
-  vocab_file = train_file.replace(".out.train", ".vocab")
+  vocab_file = train_file.replace(".train", ".vocab")
   print(train_file)
   print(vocab_file)
   vocab = []
   with open(vocab_file, 'r') as f:
     for line in f:
-      word, _ = line.strip().split()
+      word = line.strip()
       vocab.append(word)
 
   assign_probabilities(train_file, [train_file], vocab)
