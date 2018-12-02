@@ -4,46 +4,58 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from IPython.core.debugger import set_trace
 import numpy as np
+from absl import flags
+import sys
 
+FLAGS = flags.FLAGS
 
+flags.DEFINE_integer('num_epochs', 500, 'number of epochs (total)')
+flags.DEFINE_integer('random_seed', 43, 'value for the random seed')
+flags.DEFINE_string('train_path', None,
+    'path to train conditional probabilities')
+flags.DEFINE_integer('batch_size', 32, 'batch size')
+flags.DEFINE_integer('embedding_size', 20,
+    'total size of embedding (including max and min)')
+flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
+flags.DEFINE_float('l2_lambda', 0.0001, 'lambda for l2')
+
+# learning_rate
+# l2_lambda
+
+def set_random_seed(seed):
+  np.random.seed(seed)
+  torch.manual_seed(seed)
 
 def main():
-  np.random.seed(89)
-  torch.manual_seed(43)
+  set_random_seed(FLAGS.random_seed)
 
-  train_ds = box_lib.BoxDataset("data/sample/train.txt")
-  train_dl = DataLoader(train_ds, batch_size=18, shuffle=True, num_workers=4)
+  train_ds = box_lib.BoxDataset(FLAGS.train_path)
+  train_dl = DataLoader(train_ds, batch_size=FLAGS.batch_size,
+      shuffle=True, num_workers=4)
 
-  model = box_lib.Boxes(6,4)
+  # TODO: get vocab size
+
+  model = box_lib.Boxes(6, FLAGS.embedding_size)
   criterion = nn.MSELoss()
-  optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+  optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate)
 
-
-  N_EPOCHS = 500
-
-  for epoch in range(N_EPOCHS):
+  for epoch in range(FLAGS.num_epochs):
 
       # Train
       model.train()  # IMPORTANT
 
       running_loss, correct = 0.0, 0
       for X, y in train_dl:
-        #set_trace()
         #X, y = X.to(device), y.to(device)
 
-        lr  = 0.0001
+        #TODO: Use more canonical regularization maybe
 
         optimizer.zero_grad()
         with torch.set_grad_enabled(True):
           y_, norms = model(X)
-          loss = criterion(y_, y) + lr * norms
-          print(loss)
+          loss = criterion(y_, y) + FLAGS.l2_lambda * norms
 
         loss.backward()
-
-        for param in model.parameters():
-          print(param.grad.data.sum())
-        print(model.boxes[0])
         optimizer.step()
 
         # Statistics
@@ -52,7 +64,8 @@ def main():
 
       print("  Train Loss: "+str(running_loss / len(train_dl.dataset)))
       print("  Train Acc:  "+str(correct / len(train_dl.dataset)))
-      
+
 
 if __name__ == "__main__":
+  FLAGS(sys.argv)
   main()
