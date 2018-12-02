@@ -3,7 +3,7 @@ mkdir ../data
 cd ../data
 mkdir -p small/fma2snomed small/snomed2nci small/fma2nci
 mkdir -p large/
-mkdir mappings readmes large_originals
+mkdir mappings readmes
 
 echo "Directory structure complete"
 

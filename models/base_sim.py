@@ -10,7 +10,7 @@ ENGLISH_STOPWORDS = stopwords.words('english')
 
 def normalize(input_string):
   camel_case_split = re.split(CAMEL_CASE_SPLITTER, input_string)
-  if '_' not in input_string and '-' not in input_string and len(camel_case_split) > 1:
+  if len(camel_case_split) > 1:
     atoms = [word for word in camel_case_split if word]
   else:
     snake_case_split = input_string.split("_")
@@ -38,7 +38,6 @@ def phrase_edit_distance(main_phrase, aux_phrase):
   for main_word in normalize(main_phrase):
     for aux_word in normalize(aux_phrase):
       distances.append(edit_distance(main_word, aux_word))
-      print(main_word, aux_word, edit_distance(main_word, aux_word))
   if len(distances) < 3:
     return float(sum(distances))/len(distances)
   else:
