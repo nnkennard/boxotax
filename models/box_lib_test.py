@@ -72,4 +72,11 @@ def test_intersections():
       ]
     ]))
 
+def test_label_cond_probs():
+  assert box_lib.label_cond_prob(0.0) == box_lib.UNRELATED
+  assert box_lib.label_cond_prob(0.00000000001) == box_lib.UNRELATED
+  assert box_lib.label_cond_prob(0.5) == box_lib.HYPER
+  assert box_lib.label_cond_prob(0.99) == box_lib.HYPER
+  assert box_lib.label_cond_prob(1.0) == box_lib.HYPO
+
 # TODO: Add test for cond probs \in [0,1]

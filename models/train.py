@@ -53,6 +53,9 @@ def main():
         y_, norms = model(X)
         loss = criterion(y_, y) + FLAGS.l2_lambda * norms
 
+      if epoch % 25 == 0:
+        print str(y) + "\t" + str(y_)
+
       optimizer.zero_grad()
       loss.backward()
       optimizer.step()

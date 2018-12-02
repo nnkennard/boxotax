@@ -4,7 +4,20 @@ from torch.utils.data import Dataset, DataLoader
 from IPython.core.debugger import set_trace
 import numpy as np
 
-MIN_IND, MAX_IND = 0, 1
+MIN_IND, MAX_IND = range(2)
+
+HYPO, HYPER, UNRELATED = range(3)
+
+def label_cond_prob(prob):
+  # TODO: maybe isclose is not precise enough and we need a threshold
+  if np.isclose(prob, 0.0):
+    return UNRELATED
+  elif not np.isclose(prob, 1.0):
+    return HYPER
+  else:
+    return HYPO
+
+
 
 # Dataset for pairs
 class BoxDataset(Dataset):
