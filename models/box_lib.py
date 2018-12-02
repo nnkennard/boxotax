@@ -25,7 +25,7 @@ class BoxDataset(Dataset):
 
     # TODO: add test
     vocab = set(np.ravel(data[:,:2]).tolist())
-    self.vocab_size = len(vocab)
+    self.vocab_size = int(max(vocab)) + 1
 
   def __getitem__(self, index):
     return self.X_train[index], self.y_train[index]

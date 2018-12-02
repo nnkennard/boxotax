@@ -11,7 +11,7 @@ import box_lib
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('num_epochs', 500, 'number of epochs (total)')
+flags.DEFINE_integer('num_epochs', 10, 'number of epochs (total)')
 flags.DEFINE_integer('random_seed', 43, 'value for the random seed')
 flags.DEFINE_string('train_path', None,
     'path to train conditional probabilities')
@@ -40,27 +40,28 @@ def main():
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate)
 
   for epoch in range(FLAGS.num_epochs):
+    print(epoch)
 
-      model.train()
+    model.train()
 
-      running_loss, correct = 0.0, 0
-      for X, y in train_dl:
-        X, y = X.to(FLAGS.device), y.to(FLAGS.device)
+    running_loss, correct = 0.0, 0
+    for X, y in train_dl:
+      X, y = X.to(FLAGS.device), y.to(FLAGS.device)
 
-        #TODO: Use more canonical regularization maybe
-        with torch.set_grad_enabled(True):
-          y_, norms = model(X)
-          loss = criterion(y_, y) + FLAGS.l2_lambda * norms
+      #TODO: Use more canonical regularization maybe
+      with torch.set_grad_enabled(True):
+        y_, norms = model(X)
+        loss = criterion(y_, y) + FLAGS.l2_lambda * norms
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+      optimizer.zero_grad()
+      loss.backward()
+      optimizer.step()
 
-        # Statistics
-        print("    batch loss: "+str(loss.item()))
-        running_loss += loss.item() * X.shape[0]
+      # Statistics
+      print("    batch loss: "+str(loss.item()))
+      running_loss += loss.item() * X.shape[0]
 
-      print("  Train Loss: "+str(running_loss / len(train_dl.dataset)))
+    print("  Train Loss: "+str(running_loss / len(train_dl.dataset)))
 
 
 if __name__ == "__main__":
