@@ -74,6 +74,7 @@ def main():
       optimizer.step()
 
     if epoch % 5 == 0:
+      box_lib.check_cond_probs(train_ds, model)
       box_lib.confusion(train_ds, model)
       box_lib.confusion(dev_ds, model)
 

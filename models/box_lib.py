@@ -19,6 +19,14 @@ def label(x):
 
 label_v = np.vectorize(label)
 
+
+def check_cond_probs(dataset, model):
+  print(model(dataset.X_train))
+  print(dataset.X_train.shape)
+  reversed_dataset = torch.stack([dataset.X_train[:,1], dataset.X_train[:,0]],
+      dim=1)
+  print(model(reversed_dataset))
+  
 def confusion(dataset, model):
   y_pred, _ = model(dataset.X_train)
   print sklearn.metrics.confusion_matrix(
