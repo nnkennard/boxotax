@@ -35,25 +35,25 @@ def main():
   all_nodes = superclass_nodes.union(subclass_nodes)
   non_subclass_nodes = all_nodes - subclass_nodes
 
-  graph[ROOT_STR] = list(non_subclass_nodes)
-  all_nodes.add(ROOT_STR)
+  # TODO: this, but less horribly
+  prefixed_root = list(all_nodes)[0].split('_')[0] + "_" + ROOT_STR
+  graph[prefixed_root] = list(non_subclass_nodes)
+  all_nodes.add(prefixed_root)
 
   sorted_nodes = sorted(all_nodes)
-  node_to_index = {node:str(i) for i, node in enumerate(sorted_nodes)}
 
   transitive_edges = []
-  get_transitive_closure(graph, ROOT_STR, [], [], transitive_edges)
+  get_transitive_closure(graph, prefixed_root, [], [], transitive_edges)
 
   unary_filename = owl_file.replace(".owl", ".unary")
   with open(unary_filename, 'w') as f:
     for node in sorted_nodes:
-      f.write("\t".join([node, node_to_index[node]]) + "\n")
+      f.write(node + "\n")
 
   pairwise_filename = owl_file.replace(".owl", ".out")
   with open(pairwise_filename, 'w') as f:
     for parent, child in transitive_edges:
-      f.write("\t".join([node_to_index[parent], node_to_index[child],
-        parent, child])+"\n")
+      f.write("\t".join([parent, child])+"\n")
 
 
 if __name__ == "__main__":

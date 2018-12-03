@@ -2,7 +2,7 @@ import sys
 import collections
 
 DUMMY_LEAF_WEIGHT = 1.0
-ROOT_INDEX = "0"
+ROOT_STR = "!!ROOT"
 
 def assign_conditional_probabilities(root, conditional_probabilities,
     edges, unary_weights):
@@ -61,75 +61,87 @@ def transitive_reduction(root, edges):
 
   return intransitive_edges_constructor
 
-def assign_probabilities(input_file, info_files, vocab):
-
-  # Determine input file edges to account for in probabilities
-  undirected_input_edges = []
-  input_nodes = set()
-  with open(input_file, 'r') as f:
-    for line in f:
-      hyper, hypo, _, _ = line.split()
-      undirected_input_edges += [(hyper, hypo), (hypo, hyper)]
-      input_nodes.update([hypo, hyper])
-
-  assert input_file in info_files
+def get_transitive_reduction_from_files(input_files, root):
   edges = collections.defaultdict(list)
 
-  for info_file in info_files:
-    with open(info_file, 'r') as f:
+  for input_file in input_files:
+    with open(input_file, 'r') as f:
       for line in f:
-        hyper, hypo, _, _ = line.split()
+        hyper, hypo = line.split()
         edges[hyper].append(hypo)
+
   hyper_nodes = set(edges.keys())
   hypo_nodes = set(sum(edges.values(),[]))
   leaves = hypo_nodes - hyper_nodes
 
-  # Find transitive reduction
-  intransitive_edges = transitive_reduction(ROOT_INDEX, edges)
+  # Find transitive reduction of info tree only
+  intransitive_edges = transitive_reduction(root, edges)
 
-  # Calculate unary weights using transitive reduction
+  return intransitive_edges, leaves
+
+
+def assign_probabilities(input_file, info_files, vocab, prefixed_root):
+  # Calculate transitive reduction
+  info_intransitive_edges, info_leaves = get_transitive_reduction_from_files(
+      info_files, prefixed_root)
+
+  # Calculate unary weights
   unary_weights = {}
-  for leaf in leaves:
+  for leaf in info_leaves:
     unary_weights[leaf] = DUMMY_LEAF_WEIGHT
 
-  total_weight = assign_weights(ROOT_INDEX, unary_weights, intransitive_edges)
+  total_weight = assign_weights(prefixed_root, unary_weights,
+      info_intransitive_edges)
 
-  # Calculate conditional probabilities using transitive closure
+  for node, weight in unary_weights.items():
+    unary_weights[node] = weight / total_weight
+
+  # Calculate conditional probabilities
+
   conditional_probabilities = collections.defaultdict(dict)
-  assign_conditional_probabilities(ROOT_INDEX,
-      conditional_probabilities, edges, unary_weights)
+  assign_conditional_probabilities(prefixed_root,
+      conditional_probabilities, info_intransitive_edges, unary_weights)
 
+  # Print out only probabilities that are in input tree.
+  input_intransitive_edges, _ = get_transitive_reduction_from_files(
+      [input_file], prefixed_root)
+
+  input_conditional_probabilities = collections.defaultdict(dict)
+  assign_conditional_probabilities(prefixed_root,
+      input_conditional_probabilities, input_intransitive_edges, unary_weights)
+
+  input_nodes = set(input_intransitive_edges.keys())
+  input_nodes.update(set.union(*input_intransitive_edges.values()))
 
   with open(input_file + ".unary", 'w') as f:
-    for node in [str(i) for i in range(len(vocab))]:
-      if str(node) in input_nodes and node in unary_weights:
-        prob = unary_weights[node]/total_weight
-      else:
-        prob = 0.0
-      f.write("\t".join([node, str(prob)]) + "\n")
+    for node in vocab:
+      prob = unary_weights.get(node, 0.0)
+      f.write("\t".join([str(vocab.index(node)), str(prob)]) + "\n")
 
   with open(input_file + ".conditional", 'w') as f:
-   for a, b_probs in conditional_probabilities.items():
+   for a, b_probs in input_conditional_probabilities.items():
     for b, conditional_prob in b_probs.items():
-      if (a, b) in undirected_input_edges:
-        f.write("\t".join([a, b, str(conditional_prob)]) + "\n")
+      f.write("\t".join([str(vocab.index(a)), str(vocab.index(b)),
+        str(conditional_prob)]) + "\n")
 
 
 def main():
-  train_file = sys.argv[1]
+  train_file, vocab_file, prefix = sys.argv[1:4]
   dev_file = train_file.replace(".train", ".dev")
   test_file = train_file.replace(".train", ".test")
 
-  vocab_file = train_file.replace(".train", ".vocab")
   vocab = []
   with open(vocab_file, 'r') as f:
     for line in f:
       word = line.strip()
       vocab.append(word)
 
-  assign_probabilities(train_file, [train_file], vocab)
-  assign_probabilities(dev_file, [train_file, dev_file], vocab)
-  assign_probabilities(test_file, [train_file, dev_file, test_file], vocab)
+  prefixed_root = prefix + "_" + ROOT_STR
+
+  assign_probabilities(train_file, [train_file], vocab, prefixed_root)
+  assign_probabilities(dev_file, [train_file, dev_file], vocab, prefixed_root)
+  assign_probabilities(test_file, [train_file, dev_file, test_file], vocab,
+      prefixed_root)
 
 
 if __name__ == "__main__":
