@@ -30,7 +30,8 @@ def get_train_and_dev_sets(train_path):
   train_ds = box_lib.BoxDataset(train_path)
   train_dl = DataLoader(train_ds, batch_size=FLAGS.batch_size,
       shuffle=True, num_workers=NUM_WORKERS)
-  dev_ds = box_lib.BoxDataset(train_path.replace("train", "dev"))
+  dev_ds = box_lib.BoxDataset(
+      train_path.replace("train", "dev"))
   dev_dl = DataLoader(dev_ds, batch_size=FLAGS.batch_size,
       shuffle=True, num_workers=NUM_WORKERS)
 
