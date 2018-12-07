@@ -11,15 +11,17 @@ import box_lib
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('num_epochs', 10, 'number of epochs (total)')
+flags.DEFINE_integer('num_epochs', 10, 'number of epochs (max)')
 flags.DEFINE_integer('random_seed', 43, 'value for the random seed')
 flags.DEFINE_string('train_path', None,
     'path to train conditional probabilities')
 flags.DEFINE_integer('batch_size', 32, 'batch size')
 flags.DEFINE_integer('embedding_size', 20,
     'total size of embedding (including max and min)')
+flags.DEFINE_integer('stop_epochs', 5, ('number of non-improving dev '
+'iterations after which to early-stop'))
 flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
-flags.DEFINE_float('l2_lambda', 0.0001, 'lambda for l2')
+flags.DEFINE_float('l2_lambda', 0.001, 'lambda for l2')
 flags.DEFINE_string('device', 'cpu', 'device for torch option')
 flags.DEFINE_boolean('verbose', False, 'Whether to print batch loss')
 
@@ -37,7 +39,9 @@ def get_train_and_dev_sets(train_path):
 
   return train_ds, train_dl, dev_ds, dev_dl
 
+
 def main():
+
   box_lib.set_random_seed(FLAGS.random_seed)
 
   train_ds, train_dl, dev_ds, dev_dl = get_train_and_dev_sets(FLAGS.train_path)
@@ -73,14 +77,17 @@ def main():
       loss.backward()
       optimizer.step()
 
-    if epoch % 5 == 0:
-      box_lib.check_cond_probs(train_ds, model)
+    if epoch % 1 == 0:
+      #print box_lib.check_cond_probs(train_ds, model)
       box_lib.confusion(train_ds, model)
       box_lib.confusion(dev_ds, model)
 
 
     print("  Train Loss: "+str(running_loss / len(train_dl.dataset)))
-
+  for a, b, c in zip(train_ds.X_train, model(train_ds.X_train)[0] ,
+      box_lib.check_cond_probs(train_ds, model)):
+      print "\t".join([str(a.data.tolist()[0]),
+        str(a.data.tolist()[1]), str(b.item()), c])
 
 if __name__ == "__main__":
   FLAGS(sys.argv)

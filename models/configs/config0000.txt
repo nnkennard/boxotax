@@ -1,0 +1,17 @@
+# Model params
+embedding_size	20
+
+# Data location params
+train_path	data/sample/train.txt
+
+# Training params
+num_epochs	10
+stop_epochs	5
+batch_size	32
+learning_rate	0.001
+l2_lambda	0.001
+
+# Other
+random_seed	43
+device	cuda
+verbose	False
