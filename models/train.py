@@ -11,6 +11,8 @@ import box_lib
 
 FLAGS = flags.FLAGS
 
+flags.DEFINE_string('config', None,
+    'config identifier')
 flags.DEFINE_integer('num_epochs', 10, 'number of epochs (max)')
 flags.DEFINE_integer('random_seed', 43, 'value for the random seed')
 flags.DEFINE_string('train_path', None,
@@ -56,9 +58,22 @@ def get_and_maybe_load_model(train_ds):
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate)
   return model, criterion, optimizer
 
+def save_current_model(model, epoch, is_best=False):
+  if is_best:
+    suffix = ".best"
+  else:
+    suffix = ".params"
+    
+  path = "".join([FLAGS.save_path, "/", FLAGS.config, "_", str(epoch).zfill(4),
+      suffix])
+
+  torch.save(model.state_dict(), path)
+  
+
 
 def run_train_iters(model, criterion, optimizer,
     train_dl, dev_dl, train_ds, dev_ds):
+
   for epoch in range(FLAGS.num_epochs):
     print(epoch)
 
@@ -68,6 +83,9 @@ def run_train_iters(model, criterion, optimizer,
       #print box_lib.check_cond_probs(train_ds, model)
       box_lib.confusion(train_ds, model)
       box_lib.confusion(dev_ds, model)
+
+    if epoch % FLAGS.save_freq == 0:
+      save_current_model(model, epoch)
 
 
     print("  Train Loss: "+str(running_loss / len(train_dl.dataset)))

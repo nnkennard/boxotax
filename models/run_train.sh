@@ -1,3 +1,6 @@
-export flag_string=`cat configs/config0000.txt | awk 'NF' | \
+config_number=$1
+config_file="configs/config"$config_number".txt"
+
+export flag_string=`cat $config_file | awk 'NF' | \
 	grep -v \# | sed 's/^/ --/' | tr '\n' ' '`
-python train.py $flag_string
+python train.py --config $config_number $flag_string
