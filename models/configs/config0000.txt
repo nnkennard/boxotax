@@ -7,7 +7,7 @@ save_path	saved_params/
 
 # Training params
 num_epochs	15
-stop_epochs	5
+patience	5
 batch_size	32
 learning_rate	0.001
 l2_lambda	0.001

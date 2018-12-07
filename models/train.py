@@ -26,7 +26,7 @@ flags.DEFINE_integer('save_freq', 5,
 flags.DEFINE_integer('batch_size', 32, 'batch size')
 flags.DEFINE_integer('embedding_size', 20,
     'total size of embedding (including max and min)')
-flags.DEFINE_integer('stop_epochs', 5, ('number of non-improving dev '
+flags.DEFINE_integer('patience', 5, ('number of non-improving dev '
 'iterations after which to early-stop'))
 flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 flags.DEFINE_float('l2_lambda', 0.001, 'lambda for l2')
@@ -38,7 +38,6 @@ NUM_WORKERS = 0
 
 def setup():
   box_lib.set_random_seed(FLAGS.random_seed)
-
 
 
 def get_data():
@@ -63,29 +62,44 @@ def save_current_model(model, epoch, is_best=False):
     suffix = ".best"
   else:
     suffix = ".params"
-    
+
   path = "".join([FLAGS.save_path, "/", FLAGS.config, "_", str(epoch).zfill(4),
       suffix])
 
   torch.save(model.state_dict(), path)
-  
+
 
 
 def run_train_iters(model, criterion, optimizer,
     train_dl, dev_dl, train_ds, dev_ds):
+
+  best_dev_loss = float('inf')
+  best_dev_loss_epoch = -1
+  dev_labels = dev_ds.y_train.to(FLAGS.device)
 
   for epoch in range(FLAGS.num_epochs):
     print(epoch)
 
     running_loss = run_train_iter(model, criterion, optimizer, train_dl)
 
-    if epoch % 1 == 0:
+    dev_loss = criterion(model(dev_ds.X_train)[0], dev_labels)
+    if dev_loss < best_dev_loss:
+      print "".join(["Saving best model. Epoch: ", str(epoch), "\tLoss: ",
+        str(dev_loss)])
+      best_loss = dev_loss
+      best_dev_loss_epoch = epoch
+      save_current_model(model, epoch, is_best=True)
+
+    if epoch % 50  == 0:
       #print box_lib.check_cond_probs(train_ds, model)
       box_lib.confusion(train_ds, model)
       box_lib.confusion(dev_ds, model)
 
     if epoch % FLAGS.save_freq == 0:
       save_current_model(model, epoch)
+
+    if epoch >= best_dev_loss_epoch + FLAGS.patience:
+      break
 
 
     print("  Train Loss: "+str(running_loss / len(train_dl.dataset)))
@@ -115,14 +129,14 @@ def run_train_iter(model, criterion, optimizer, train_dl):
     loss.backward()
     optimizer.step()
 
-    return running_loss
+  return running_loss
 
 
 def finish_train(train_ds, model):
   for a, b, c in zip(train_ds.X_train, model(train_ds.X_train)[0],
       box_lib.check_cond_probs(train_ds, model)):
-    print "\t".join([str(a.data.tolist()[0]), str(a.data.tolist()[1]), str(b.item()), c])
-    pass
+    print "\t".join([str(a.data.tolist()[0]),
+      str(a.data.tolist()[1]), str(b.item()), c])
 
 
 def main():
