@@ -1,15 +1,15 @@
 # Model params
-embedding_size	20
+embedding_size	4
 
 # Data location params
 train_path	data/sample/train.txt
 save_path	saved_params/
 
 # Training params
-num_epochs	15
-patience	5
+num_epochs	15000
+patience	50
 batch_size	32
-learning_rate	0.001
+learning_rate	0.03
 l2_lambda	0.001
 
 # Other

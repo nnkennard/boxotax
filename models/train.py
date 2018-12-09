@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 
 from absl import flags
-from IPython.core.debugger import set_trace
 from torch.utils.data import Dataset, DataLoader
 
 import box_lib
@@ -50,24 +49,25 @@ def get_data():
       shuffle=True, num_workers=NUM_WORKERS)
   return train_ds, train_dl, dev_ds, dev_dl
 
+
 def get_and_maybe_load_model(train_ds):
   model = box_lib.Boxes(train_ds.vocab_size, FLAGS.embedding_size)
   model.to(FLAGS.device)
-  criterion = nn.MSELoss()
+  criterion = nn.BCELoss()
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate)
   return model, criterion, optimizer
 
+
 def save_current_model(model, epoch, is_best=False):
   if is_best:
-    suffix = ".best"
+    config_number = "best"
   else:
-    suffix = ".params"
+    config_number = str(epoch).zfill(4)
 
-  path = "".join([FLAGS.save_path, "/", FLAGS.config, "_", str(epoch).zfill(4),
-      suffix])
+  path = "".join([FLAGS.save_path, "/", FLAGS.config, "_", config_number,
+      ".params"])
 
   torch.save(model.state_dict(), path)
-
 
 
 def run_train_iters(model, criterion, optimizer,
@@ -76,6 +76,7 @@ def run_train_iters(model, criterion, optimizer,
   best_dev_loss = float('inf')
   best_dev_loss_epoch = -1
   dev_labels = dev_ds.y_train.to(FLAGS.device)
+  train_labels = train_ds.y_train.to(FLAGS.device)
 
   for epoch in range(FLAGS.num_epochs):
     print(epoch)
@@ -83,16 +84,16 @@ def run_train_iters(model, criterion, optimizer,
     running_loss = run_train_iter(model, criterion, optimizer, train_dl)
 
     dev_loss = criterion(model(dev_ds.X_train)[0], dev_labels)
+    print sum(model(dev_ds.X_train)[0] -  dev_labels)
+    print sum(model(train_ds.X_train)[0] -  train_labels)
     if dev_loss < best_dev_loss:
       print "".join(["Saving best model. Epoch: ", str(epoch), "\tLoss: ",
         str(dev_loss)])
-      best_loss = dev_loss
+      best_dev_loss = dev_loss
       best_dev_loss_epoch = epoch
       save_current_model(model, epoch, is_best=True)
 
-    if epoch % 50  == 0:
-      #print box_lib.check_cond_probs(train_ds, model)
-      box_lib.confusion(train_ds, model)
+    if epoch % 1  == 0:
       box_lib.confusion(dev_ds, model)
 
     if epoch % FLAGS.save_freq == 0:
@@ -117,13 +118,7 @@ def run_train_iter(model, criterion, optimizer, train_dl):
     with torch.set_grad_enabled(True):
       y_, norms = model(X)
       loss = criterion(y_, y)
-      loss += FLAGS.l2_lambda * norms
       running_loss += loss.item() * X.shape[0]
-
-      # Statistics
-      if FLAGS.verbose:
-        print("    batch loss: "+str(loss.item()))
-
 
     optimizer.zero_grad()
     loss.backward()
@@ -148,7 +143,7 @@ def main():
   run_train_iters(model, criterion, optimizer, train_dl, dev_dl, train_ds,
       dev_ds)
 
-  finish_train(train_ds, model)
+  #finish_train(train_ds, model)
 
 
 if __name__ == "__main__":
