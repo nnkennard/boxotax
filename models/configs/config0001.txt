@@ -1,0 +1,18 @@
+# Model params
+embedding_size	10
+
+# Data location params
+train_path	../oaei/data/small/fma2nci/fma2nci.train.conditional
+save_path	saved_params/
+
+# Training params
+num_epochs	500
+patience	100
+batch_size	256
+learning_rate	0.001
+l2_lambda	0.001
+
+# Other
+random_seed	43
+device	cuda
+verbose	False
