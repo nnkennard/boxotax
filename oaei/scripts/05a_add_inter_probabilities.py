@@ -34,6 +34,8 @@ def main():
           inter_nonpairs.append((index_1, index_2))
 
     selected_nonpairs = random.sample(inter_nonpairs, len(inter_pairs))
+    print(len(inter_pairs))
+    print(len(selected_nonpairs))
 
     with open(output_path, 'w') as f_out:
       for index_1, index_2 in inter_pairs:
@@ -41,7 +43,7 @@ def main():
           str(index_1), str(index_2), ALIGNMENT_PROBABILITY]) + "\n")
         f_out.write("\t".join([
           str(index_2), str(index_1), ALIGNMENT_PROBABILITY]) + "\n")
-      for index_1, index_2 in inter_nonpairs:
+      for index_1, index_2 in selected_nonpairs:
         f_out.write("\t".join([
           str(index_1), str(index_2), DISJOINT_PROBABILITY]) + "\n")
         f_out.write("\t".join([

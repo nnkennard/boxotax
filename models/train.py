@@ -90,8 +90,8 @@ def run_train_iters(model, criterion, optimizer,
       best_dev_loss_epoch = epoch
       save_current_model(model, epoch, is_best=True)
 
-    if epoch % 1  == 0:
-      box_lib.confusion(dev_ds, model)
+    #if epoch % 1  == 0:
+     # box_lib.confusion(dev_ds, model)
 
     if epoch % FLAGS.save_freq == 0:
       save_current_model(model, epoch)
@@ -128,7 +128,12 @@ def numpyize(x):
 
 
 def evaluate(model, train_ds):
-  model.load(get_save_file_name(epoch=-1, is_best=True))
+
+  print torch.load(get_save_file_name(epoch=-1, is_best=True),
+      map_location=lambda storage, loc: storage)
+  #torch.load(model, get_save_file_name(epoch=-1, is_best=True))
+  #eval_mode = torch.load(get_save_file_name(epoch=-1, is_best=True))
+  model.load_state_dict(torch.load(get_save_file_name(epoch=-1, is_best=True)))
   model.eval()
   # Calculate true probabilities
   forward_probs = model(train_ds.X_train)[0]
@@ -142,6 +147,7 @@ def evaluate(model, train_ds):
     print(str(i) + "\t" + str(j))
 
   print box_lib.label_v(reverse_np, forward_np)
+  print box_lib.label_multi_v(reverse_np, forward_np)
   
 
 

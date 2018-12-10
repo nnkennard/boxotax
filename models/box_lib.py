@@ -35,6 +35,7 @@ def label(x, y):
     return UNRELATED
 
 label_v = np.vectorize(label)
+label_multi_v = np.vectorize(label_multi)
 
 
 def set_random_seed(seed):
@@ -57,8 +58,7 @@ class BoxDataset(Dataset):
 
     # First two columns are the two entity indices, third is cond prob
     self.X_train = torch.from_numpy(data[:,:2].astype(np.long))
-    self.y_train = split_bernoulli(
-        torch.from_numpy(data[:,2].astype(np.float32)))
+    self.y_train = torch.from_numpy(data[:,2].astype(np.float32))
 
     # TODO: add test
     vocab = set(np.ravel(data[:,:2]).tolist())
@@ -106,14 +106,7 @@ def get_cond_probs(boxes1, boxes2):
 
   Pairwise, conditions each box in boxes1 on the corresponding box in boxes2.
   """
-  probs = volumes(intersections(boxes1, boxes2)) / volumes(boxes2)
-  #print("boxes2")
-  #print(volumes(boxes2))
-  return split_bernoulli(probs)
-
-def split_bernoulli(probabilities):
-  return probabilities
-  return torch.stack([probabilities, 1 - probabilities], 1)
+  return volumes(intersections(boxes1, boxes2)) / volumes(boxes2)
 
 def softplus(x):
   return torch.log(1.0 + torch.exp(x))
