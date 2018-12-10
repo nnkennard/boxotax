@@ -54,7 +54,7 @@ def get_and_maybe_load_model(train_ds):
   return model, criterion, optimizer
 
 
-def save_current_model(model, epoch, is_best=False):
+def get_save_file_name(epoch, is_best):
   if is_best:
     config_number = "best"
   else:
@@ -62,7 +62,10 @@ def save_current_model(model, epoch, is_best=False):
 
   path = "".join([FLAGS.save_path, "/", FLAGS.config, "_", config_number,
       ".params"])
+  return path
 
+def save_current_model(model, epoch, is_best=False):
+  path = get_save_file_name(epoch, is_best)
   torch.save(model.state_dict(), path)
 
 
@@ -79,14 +82,10 @@ def run_train_iters(model, criterion, optimizer,
 
     running_loss = run_train_iter(model, criterion, optimizer, train_dl)
 
+    model.eval()
+
     dev_loss = criterion(model(dev_ds.X_train)[0], dev_labels).item()
-    print("try check loss")
-    print(dev_loss, best_dev_loss)
     if dev_loss < best_dev_loss:
-      print("".join(["Saving best model. Epoch: ", str(epoch), "\tLoss: ",
-        str(dev_loss)]))
-      print("Previous best dev loss", best_dev_loss)
-      print("Current dev loss", dev_loss)
       best_dev_loss = dev_loss
       best_dev_loss_epoch = epoch
       save_current_model(model, epoch, is_best=True)
@@ -113,7 +112,7 @@ def run_train_iter(model, criterion, optimizer, train_dl):
 
     #TODO: Use more canonical regularization maybe
     with torch.set_grad_enabled(True):
-      y_, norms = model(X)
+      y_, _ = model(X)
       loss = criterion(y_, y)
       running_loss += loss.item() * X.shape[0]
 
@@ -127,30 +126,23 @@ def run_train_iter(model, criterion, optimizer, train_dl):
 def numpyize(x):
   return x.detach().cpu().numpy()
 
+
 def evaluate(model, train_ds):
+  model.load(get_save_file_name(epoch=-1, is_best=True))
+  model.eval()
   # Calculate true probabilities
   forward_probs = model(train_ds.X_train)[0]
   # Calculate reverse probabilities
   reverse_train_set = torch.stack([train_ds.X_train[:,1],
     train_ds.X_train[:,0]], 1)
   reverse_probs, _ = model(reverse_train_set)
-  print(forward_probs, reverse_probs)
   forward_np = numpyize(forward_probs)
   reverse_np = numpyize(reverse_probs)
   for i, j in zip(forward_np, reverse_np):
     print(str(i) + "\t" + str(j))
 
-
   print box_lib.label_v(reverse_np, forward_np)
   
-  print box_lib.label_v(forward_probs.detach().cpu().numpy(),
-      reverse_probs.detach().cpu().numpy()).tolist()
-
-def finish_train(train_ds, model):
-  for a, b, c in zip(train_ds.X_train, model(train_ds.X_train)[0] ,
-      box_lib.check_cond_probs(train_ds, model)):
-    print("\t".join([str(a.data.tolist()[0]),
-      str(a.data.tolist()[1]), str(b.item()), c]))
 
 
 def main():
