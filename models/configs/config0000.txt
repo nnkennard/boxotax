@@ -1,5 +1,5 @@
 # Model params
-embedding_size	4
+embedding_size	50
 
 # Data location params
 train_path	data/sample/train.txt

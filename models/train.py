@@ -16,12 +16,8 @@ flags.DEFINE_integer('num_epochs', 10, 'number of epochs (max)')
 flags.DEFINE_integer('random_seed', 43, 'value for the random seed')
 flags.DEFINE_string('train_path', None,
     'path to train conditional probabilities')
-flags.DEFINE_string('load_path', None,
-    'path to train conditional probabilities')
-flags.DEFINE_string('save_path', None,
-    'path to train conditional probabilities')
-flags.DEFINE_integer('save_freq', 5,
-    'path to train conditional probabilities')
+flags.DEFINE_string('save_path', None, 'directory where models are saved')
+flags.DEFINE_integer('save_freq', 5, 'epochs between model saves')
 flags.DEFINE_integer('batch_size', 32, 'batch size')
 flags.DEFINE_integer('embedding_size', 20,
     'total size of embedding (including max and min)')
@@ -83,12 +79,14 @@ def run_train_iters(model, criterion, optimizer,
 
     running_loss = run_train_iter(model, criterion, optimizer, train_dl)
 
-    dev_loss = criterion(model(dev_ds.X_train)[0], dev_labels)
-    print sum(model(dev_ds.X_train)[0] -  dev_labels)
-    print sum(model(train_ds.X_train)[0] -  train_labels)
+    dev_loss = criterion(model(dev_ds.X_train)[0], dev_labels).item()
+    print("try check loss")
+    print(dev_loss, best_dev_loss)
     if dev_loss < best_dev_loss:
-      print "".join(["Saving best model. Epoch: ", str(epoch), "\tLoss: ",
-        str(dev_loss)])
+      print("".join(["Saving best model. Epoch: ", str(epoch), "\tLoss: ",
+        str(dev_loss)]))
+      print("Previous best dev loss", best_dev_loss)
+      print("Current dev loss", dev_loss)
       best_dev_loss = dev_loss
       best_dev_loss_epoch = epoch
       save_current_model(model, epoch, is_best=True)
@@ -101,7 +99,6 @@ def run_train_iters(model, criterion, optimizer,
 
     if epoch >= best_dev_loss_epoch + FLAGS.patience:
       break
-
 
     print("  Train Loss: "+str(running_loss / len(train_dl.dataset)))
 
@@ -127,11 +124,33 @@ def run_train_iter(model, criterion, optimizer, train_dl):
   return running_loss
 
 
+def numpyize(x):
+  return x.detach().cpu().numpy()
+
+def evaluate(model, train_ds):
+  # Calculate true probabilities
+  forward_probs = model(train_ds.X_train)[0]
+  # Calculate reverse probabilities
+  reverse_train_set = torch.stack([train_ds.X_train[:,1],
+    train_ds.X_train[:,0]], 1)
+  reverse_probs, _ = model(reverse_train_set)
+  print(forward_probs, reverse_probs)
+  forward_np = numpyize(forward_probs)
+  reverse_np = numpyize(reverse_probs)
+  for i, j in zip(forward_np, reverse_np):
+    print(str(i) + "\t" + str(j))
+
+
+  print box_lib.label_v(reverse_np, forward_np)
+  
+  print box_lib.label_v(forward_probs.detach().cpu().numpy(),
+      reverse_probs.detach().cpu().numpy()).tolist()
+
 def finish_train(train_ds, model):
-  for a, b, c in zip(train_ds.X_train, model(train_ds.X_train)[0],
+  for a, b, c in zip(train_ds.X_train, model(train_ds.X_train)[0] ,
       box_lib.check_cond_probs(train_ds, model)):
-    print "\t".join([str(a.data.tolist()[0]),
-      str(a.data.tolist()[1]), str(b.item()), c])
+    print("\t".join([str(a.data.tolist()[0]),
+      str(a.data.tolist()[1]), str(b.item()), c]))
 
 
 def main():
@@ -144,6 +163,7 @@ def main():
       dev_ds)
 
   #finish_train(train_ds, model)
+  evaluate(model, train_ds)
 
 
 if __name__ == "__main__":

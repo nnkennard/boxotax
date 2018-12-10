@@ -39,9 +39,13 @@ def main():
       for index_1, index_2 in inter_pairs:
         f_out.write("\t".join([
           str(index_1), str(index_2), ALIGNMENT_PROBABILITY]) + "\n")
+        f_out.write("\t".join([
+          str(index_2), str(index_1), ALIGNMENT_PROBABILITY]) + "\n")
       for index_1, index_2 in inter_nonpairs:
         f_out.write("\t".join([
           str(index_1), str(index_2), DISJOINT_PROBABILITY]) + "\n")
+        f_out.write("\t".join([
+          str(index_2), str(index_1), DISJOINT_PROBABILITY]) + "\n")
 
 
 if __name__ == "__main__":

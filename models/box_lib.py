@@ -6,43 +6,36 @@ import numpy as np
 
 MIN_IND, MAX_IND = range(2)
 
-UNRELATED, HYPO, HYPER = range(3)
+UNRELATED, HYPER, HYPO, ALIGNED, UNKNOWN = range(5)
 
+UNRELATED_THRESHOLD = 0.01
+HYPER_THRESHOLD = 0.90
 
-def label(x):
-  if x < 0.05:
+maybe_hyper = lambda x: x > HYPER_THRESHOLD
+maybe_unrelated = lambda x: x < UNRELATED_THRESHOLD
+maybe_hypo = lambda x: x < HYPER_THRESHOLD and x > UNRELATED_THRESHOLD
+
+def label_multi(x, y):
+  if maybe_hypo(x) and maybe_hyper(y):
+    return HYPO
+  elif maybe_hyper(x) and maybe_hypo(y):
+    return HYPER
+  elif maybe_hyper(x) and maybe_hyper(y):
+    return ALIGNED
+  elif maybe_unrelated(x) and maybe_unrelated(y):
     return UNRELATED
-  elif x > 0.95:
+  else:
+    return UNKNOWN
+
+
+def label(x, y):
+  if maybe_hyper(x):
     return HYPER
   else:
-    return HYPO
+    return UNRELATED
 
 label_v = np.vectorize(label)
 
-unused_classification_stuff = """
-def check_cond_probs(dataset, model):
-  reversed_dataset = torch.stack([dataset.X_train[:,1], dataset.X_train[:,0]],
-      dim=1)
-  y_pred_actual, _ = model(dataset.X_train)
-  y_pred_reverse, _ = model(reversed_dataset)
-  print(y_pred_actual)
-  print(y_pred_reverse)
-  sure_labels = []
-  for x, z in zip(y_pred_actual, y_pred_reverse):
-    if label(x) == HYPO and label(z) == HYPER:
-      sure_labels.append("hypo")
-    elif label(x) == HYPER and label(z) == HYPO:
-      sure_labels.append("hyper")
-    else:
-      sure_labels.append("unrelated")
-  return sure_labels """
-
-def confusion(dataset, model):
-  y_pred, _ = model(dataset.X_train)
-  true_labels = label_v(dataset.y_train)
-  pred_labels = label_v(y_pred.detach().cpu().numpy())
-  print sklearn.metrics.confusion_matrix(true_labels, pred_labels)
-  #print sklearn.metrics.f1_score(true_labels, pred_labels, average='micro')
 
 def set_random_seed(seed):
   np.random.seed(seed)
