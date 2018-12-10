@@ -57,15 +57,20 @@ class BoxDataset(Dataset):
     self.len = len(data)
 
     # First two columns are the two entity indices, third is cond prob
-    self.X_train = torch.from_numpy(data[:,:2].astype(np.long))
-    self.y_train = torch.from_numpy(data[:,2].astype(np.float32))
+    X_forward = data[:,:2].astype(np.long)
+    X_reverse = np.stack([X_forward[:,1], X_forward[:,0]], 1)
+    self.y_forward = data[:,2].astype(np.float32)
+    self.y_reverse = data[:,3].astype(np.float32)
+
+    self.X = torch.from_numpy(np.concatenate([X_forward, X_reverse]))
+    self.y = torch.from_numpy(np.concatenate([self.y_forward, self.y_reverse]))
 
     # TODO: add test
     vocab = set(np.ravel(data[:,:2]).tolist())
     self.vocab_size = int(max(vocab)) + 1
 
   def __getitem__(self, index):
-    return self.X_train[index], self.y_train[index]
+    return self.X[index], self.y[index]
 
   def __len__(self):
     return self.len
