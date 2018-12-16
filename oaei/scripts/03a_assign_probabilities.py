@@ -63,12 +63,17 @@ def transitive_reduction(root, edges):
 
 def get_transitive_reduction_from_files(input_files, root):
   edges = collections.defaultdict(list)
+  negative_edges = collections.defaultdict(list)
 
   for input_file in input_files:
     with open(input_file, 'r') as f:
       for line in f:
-        hyper, hypo = line.split()
-        edges[hyper].append(hypo)
+        hyper, hypo, tf = line.split()
+        if tf == 'true':
+          edges[hyper].append(hypo)
+        else:
+          assert tf == 'false'
+          negative_edges[hyper].append(hypo)
 
   hyper_nodes = set(edges.keys())
   hypo_nodes = set(sum(edges.values(),[]))
@@ -77,12 +82,13 @@ def get_transitive_reduction_from_files(input_files, root):
   # Find transitive reduction of info tree only
   intransitive_edges = transitive_reduction(root, edges)
 
-  return intransitive_edges, leaves
+  return intransitive_edges, negative_edges, leaves
 
 
 def assign_probabilities(input_file, info_files, vocab, prefixed_root):
   # Calculate transitive reduction
-  info_intransitive_edges, info_leaves = get_transitive_reduction_from_files(
+  (info_intransitive_edges, info_negative_edges,
+      info_leaves) = get_transitive_reduction_from_files(
       info_files, prefixed_root)
 
   # Calculate unary weights
@@ -103,20 +109,24 @@ def assign_probabilities(input_file, info_files, vocab, prefixed_root):
       conditional_probabilities, info_intransitive_edges, unary_weights)
 
   # Print out only probabilities that are in input tree.
-  input_intransitive_edges, _ = get_transitive_reduction_from_files(
-      [input_file], prefixed_root)
+  (input_intransitive_edges, input_negative_edges,
+      _) = get_transitive_reduction_from_files([input_file], prefixed_root)
 
   input_conditional_probabilities = collections.defaultdict(dict)
   assign_conditional_probabilities(prefixed_root,
       input_conditional_probabilities, input_intransitive_edges, unary_weights)
 
+  for hyper, hypos in input_negative_edges.items():
+    for hypo in hypos:
+      input_conditional_probabilities[hypo][hyper] = 0.0
+
   input_nodes = set(input_intransitive_edges.keys())
   input_nodes.update(set.union(*input_intransitive_edges.values()))
 
-  with open(input_file + ".unary", 'w') as f:
-    for node in vocab:
-      prob = unary_weights.get(node, 0.0)
-      f.write("\t".join([str(vocab.index(node)), str(prob)]) + "\n")
+  #with open(input_file + ".unary", 'w') as f:
+  #  for node in vocab:
+  #    prob = unary_weights.get(node, 0.0)
+  #    f.write("\t".join([str(vocab.index(node)), str(prob)]) + "\n")
 
   with open(input_file + ".conditional", 'w') as f:
    for a, b_probs in input_conditional_probabilities.items():

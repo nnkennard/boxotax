@@ -1,18 +1,18 @@
 # Model params
-embedding_size	20
+embedding_size	5
 
 # Data location params
-train_path	data/sample/train_medium.txt.final
+train_path	data/sample/train_neg_only.txt.final
 save_path	saved_params/
 report_path	reports/
 result_path	results/
 
 # Training params
-num_epochs	100
-patience	20
-batch_size	32
-learning_rate	0.01
-l2_lambda	0.001
+num_epochs	20000
+patience	20000
+batch_size	94
+learning_rate	0.001
+l2_lambda	0.000
 
 # Other
 random_seed	43

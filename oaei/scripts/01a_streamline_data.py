@@ -1,5 +1,6 @@
 import pickle
 import sys
+import random
 import rdflib
 import oaei_lib
 import collections
@@ -18,7 +19,18 @@ def get_transitive_closure(graph, root, ancestor_list, seen, edges):
   for ancestor in ancestor_list:
     edges.append((ancestor, root))
 
+def get_negative_edges(transitive_edges, sorted_nodes):
+  negative_edges = []
+  while len(negative_edges) < len(transitive_edges):
+    possible_edge = tuple(random.sample(sorted_nodes, 2))
+    if (possible_edge not in transitive_edges
+        and possible_edge not in negative_edges):
+      negative_edges.append(possible_edge)
+  return negative_edges
+
+
 def main():
+  random.seed(43)
   owl_file = sys.argv[1]
 
   g = rdflib.Graph()
@@ -42,8 +54,11 @@ def main():
 
   sorted_nodes = sorted(all_nodes)
 
+
   transitive_edges = []
   get_transitive_closure(graph, prefixed_root, [], [], transitive_edges)
+  negative_edges = get_negative_edges(transitive_edges, sorted_nodes)
+
 
   unary_filename = owl_file.replace(".owl", ".unary")
   with open(unary_filename, 'w') as f:
@@ -53,7 +68,9 @@ def main():
   pairwise_filename = owl_file.replace(".owl", ".out")
   with open(pairwise_filename, 'w') as f:
     for parent, child in transitive_edges:
-      f.write("\t".join([parent, child])+"\n")
+      f.write("\t".join([parent, child, "true"])+"\n")
+    for parent, child in negative_edges:
+      f.write("\t".join([parent, child, "false"])+"\n")
 
 
 if __name__ == "__main__":

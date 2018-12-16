@@ -1,17 +1,17 @@
 # Model params
-embedding_size	20
+embedding_size	10
 
 # Data location params
-train_path	data/sample/train_medium.txt.final
+train_path	../oaei/data/small/fma2nci/fma2nci.train.conditional.final
 save_path	saved_params/
 report_path	reports/
 result_path	results/
 
 # Training params
-num_epochs	100
-patience	20
-batch_size	32
-learning_rate	0.01
+num_epochs	500
+patience	100
+batch_size	256
+learning_rate	0.001
 l2_lambda	0.001
 
 # Other

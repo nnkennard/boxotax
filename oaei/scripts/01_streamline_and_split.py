@@ -5,7 +5,7 @@ import sys
 def main():
   data_path = sys.argv[1]
 
-  for pair, datasets in oaei_lib.PAIR_TO_DATASET_NAMES.items():
+  for pair, datasets in [("fma2nci", ["fma", "nci"])]:
     for dataset in datasets:
       print("Streamlining " + pair + " " + dataset )
       file_path = "".join([data_path, '/small/', pair, '/', dataset, '.owl'])
