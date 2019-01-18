@@ -6,7 +6,7 @@ from torch.distributions import uniform
 import numpy as np
 
 MIN_IND, DELTA_IND = range(2)
-MAX_IND = DELTA_IND
+#MAX_IND = DELTA_IND
 
 UNRELATED, HYPER, HYPO, ALIGNED, UNKNOWN = range(5)
 
@@ -67,9 +67,11 @@ class BoxDataset(Dataset):
     self.X = torch.from_numpy(np.concatenate([X_forward, X_reverse]))
     self.y = torch.from_numpy(np.concatenate([self.y_forward, self.y_reverse]))
 
+
     # TODO: add test
-    vocab = set(np.ravel(data[:,:2]).tolist())
+    vocab = set(int(x) for x in np.ravel(data[:,:2]).tolist())
     self.vocab_size = int(max(vocab)) + 1
+    print(vocab)
 
   def __getitem__(self, index):
     return self.X[index], self.y[index]
@@ -93,7 +95,7 @@ class Boxes(nn.Module):
   def forward(self, X):
     """Returns box embeddings for ids"""
     x = self.boxes[X]
-    torch.div(self.boxes, torch.max(self.boxes))
+    #torch.div(self.boxes, torch.max(self.boxes))
     norms = None
 
     cond_probs = get_cond_probs(x[:,0,:,:], x[:,1,:,:])
@@ -101,29 +103,59 @@ class Boxes(nn.Module):
     return predictions, norms
 
 def volumes(boxes):
-  """Calculate (soft) volumes of a tensor containing boxes"""
-  return softplus(boxes[:, MAX_IND, :] - boxes[:, MIN_IND, :]).prod(1)
+  """Calculate (soft) volumes of a tensor containing boxesi
+
+    Input: one vector of boxes in min-delta format
+    Output: one vector of box volumes (float)
+
+  """
+  #return softplus(boxes[:, MAX_IND, :] - boxes[:, MIN_IND, :]).prod(1)
+  return softplus(torch.exp(boxes[:, DELTA_IND, :])).prod(1)
 
 
 def intersections(boxes1, boxes2):
-  """Calculate pairwise intersection boxes of two tensors containing boxes."""
+  """Calculate pairwise intersection boxes of two tensors containing boxes.
+
+    Input: two vectors of boxes in min-delta format
+    Output: one vector of boxes in min-delta format, representing the intersection
+
+  """
 
   intersections_min = torch.max(boxes1[:, MIN_IND, :], boxes2[:, MIN_IND, :])
-  intersections_max = torch.min(boxes1[:, MAX_IND, :], boxes2[:, MAX_IND, :])
-  return torch.stack([intersections_min, intersections_max], 1)
+  maxes1 = boxes1[:, MIN_IND, :] + torch.exp(boxes1[:, DELTA_IND, :])
+  maxes2 = boxes2[:, MIN_IND, :] + torch.exp(boxes2[:, DELTA_IND, :])
+  intersections_max = torch.min(maxes1, maxes2)
+  print("Delta before log")
+  print(intersections_max - intersections_min)
+  intersections_delta = torch.log(
+      torch.clamp(intersections_max - intersections_min, 1e-7, 10000.0))
+  print("Delta after log")
+  print(intersections_delta)
+  return torch.stack([intersections_min, intersections_delta], 1)
 
-def minmax_format(boxes):
-  maxes =  boxes[:, MIN_IND, :] + torch.exp(boxes[:, DELTA_IND, :])
-  return torch.stack([boxes[:, MIN_IND, :], maxes], 1)
+#def minmax_format(boxes):
+#  maxes =  boxes[:, MIN_IND, :] + torch.exp(boxes[:, DELTA_IND, :])
+#  return torch.stack([boxes[:, MIN_IND, :], maxes], 1)
 
 def get_cond_probs(boxes1, boxes2):
   """Calculate conditional probabilities of tensors of boxes.
 
   Pairwise, conditions each box in boxes1 on the corresponding box in boxes2.
+
+    Input: two vectors of boxes in min-delta format
+    Output: one vector of conditional probabilities (conditioned on boxes2)
   """
-  b1 = minmax_format(boxes1)
-  b2 = minmax_format(boxes2)
-  return volumes(intersections(b1, b2)) / volumes(b2)
+  #b1 = minmax_format(boxes1)
+  #b2 = minmax_format(boxes2)
+  print("Joint volume:")
+  print(volumes(intersections(boxes1,boxes2)))
+  print(volumes(boxes1))
+  print(volumes(boxes2))
+  print("Actual boxes")
+  #print(boxes1)
+  #print(boxes2)
+  print(intersections(boxes1,boxes2))
+  return volumes(intersections(boxes1, boxes2)) / volumes(boxes2)
 
 def softplus(x):
   return torch.log(1.0 + torch.exp(x))
