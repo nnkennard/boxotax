@@ -8,31 +8,6 @@ from torch.utils.data import Dataset, DataLoader
 
 import box_lib
 
-class StableBCELoss(nn.modules.Module):
-  def __init__(self):
-    super(StableBCELoss, self).__init__()
-  def forward(self, input, target):
-    neg_abs = - input.abs()
-    loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
-    return loss.mean()
-
-
-def kl_term(true_dist, proposed_dist):
-  """KL divergence for a single term (i.e. element-wise, unreduced)"""
-  return true_dist * (true_dist.log() - proposed_dist.log())
-
-def kl_div(true_dist, proposed_dist, eps=1e-7):
-  """KL divergence, eps is for numerical stability (unreduced)"""
-  true_dist = true_dist.clamp(eps, 1 - eps)
-  proposed_dist = proposed_dist.clamp(eps, 1 - eps)
-  return kl_term(true_dist, proposed_dist) + kl_term(1 - true_dist, 1 - proposed_dist)
-
-class MichaelLoss(nn.modules.Module):
-  def __init__(self):
-    super(MichaelLoss, self).__init__()
-  def forward(self, input, target):
-    return  kl_div(input, target).mean()
-
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('config', None,
@@ -54,6 +29,23 @@ flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 flags.DEFINE_float('l2_lambda', 0.001, 'lambda for l2')
 flags.DEFINE_string('device', 'cpu', 'device for torch option')
 flags.DEFINE_boolean('verbose', False, 'Whether to print batch loss')
+
+
+def kl_term(true_dist, proposed_dist):
+  """KL divergence for a single term (i.e. element-wise, unreduced)"""
+  return true_dist * (true_dist.log() - proposed_dist.log())
+
+def kl_div(true_dist, proposed_dist, eps=1e-7):
+  """KL divergence, eps is for numerical stability (unreduced)"""
+  true_dist = true_dist.clamp(eps, 1 - eps)
+  proposed_dist = proposed_dist.clamp(eps, 1 - eps)
+  return kl_term(true_dist, proposed_dist) + kl_term(1 - true_dist, 1 - proposed_dist)
+
+class KLLoss(nn.modules.Module):
+  def __init__(self):
+    super(MichaelLoss, self).__init__()
+  def forward(self, input, target):
+    return  kl_div(input, target).mean()
 
 # For some reason, pytorch crashes with more workers
 NUM_WORKERS = 0
@@ -77,7 +69,7 @@ def get_and_maybe_load_model(train_ds):
   model = box_lib.Boxes(train_ds.vocab_size, FLAGS.embedding_size)
   model.to(FLAGS.device)
   criterion = MichaelLoss()
-  #criterion = StableBCELoss()
+  #criterion = torch.nn.BCELoss()
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate, eps
       =1e-6)
   return model, criterion, optimizer
@@ -141,14 +133,12 @@ def run_train_iters(model, criterion, optimizer,
         save_current_model(model, epoch, is_best=True)
 
         train_loss = criterion(model(train_ds.X)[0],
-          dev_labels).item()/len(train_dl.dataset)
+          train_labels).item()/len(train_dl.dataset)
         print_report(epoch, dev_loss, train_loss, sys.stdout)
         print_results_to_file(model, train_ds, sys.stdout)
 
-      #if epoch % 1  == 0:
-       # box_lib.confusion(dev_ds, model)
-
       if epoch % FLAGS.save_freq == 0:
+        box_lib.confusion(dev_ds, model)
         save_current_model(model, epoch)
 
       print_report(epoch, dev_loss, running_loss/len(train_dl.dataset), f)
@@ -169,10 +159,6 @@ def run_train_iter(model, criterion, optimizer, train_dl):
     #TODO: Use more canonical regularization maybe
     with torch.set_grad_enabled(True):
       y_, _ = model(X)
-      #clamped_y = torch.clamp(y, 0.1, 0.9)
-      #clamped_y_ = torch.clamp(y_, 0.1, 0.9)
-      print(y)
-      print(y_)
       if any(torch.isnan(y_)):
         dsds
       loss = criterion(y_, y)
@@ -237,11 +223,7 @@ def main():
   run_train_iters(model, criterion, optimizer, train_dl, dev_dl, train_ds,
       dev_ds)
 
-  #finish_train(train_ds, model)
   evaluate(model, train_ds, dev_ds)
-  print("Final boxes")
-  print(model.boxes)
-  find_universe_size(model.boxes)
 
 
 if __name__ == "__main__":
