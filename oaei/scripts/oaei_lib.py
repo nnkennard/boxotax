@@ -13,6 +13,10 @@ class RDFPredicates(object):
   ONE_OF = "http://www.w3.org/2002/07/owl#oneOf"
   UNION_OF = "http://www.w3.org/2002/07/owl#unionOf"
 
+FMA = "fma"
+NCI = "nci"
+SNOMED = "snomed"
+
 class OAEINode(object):
   def __init__(self, uid, label):
     self.uid = uid
@@ -35,9 +39,15 @@ class LabelPrefix(object):
   SNOMED = "http://www.ihtsdo.org/snomed#"
 
 LABEL_PREFIX_MAP ={
-    "fma": LabelPrefix.FMA,
-    "nci": LabelPrefix.NCI,
-    "snomed": LabelPrefix.SNOMED,
+    FMA: LabelPrefix.FMA,
+    NCI: LabelPrefix.NCI,
+    SNOMED: LabelPrefix.SNOMED,
+    }
+
+START_INDEX ={
+    NCI: 10000,
+    FMA: 100000,
+    SNOMED: 200000,
     }
 
 ENTITY_1 = "http://knowledgeweb.semanticweb.org/heterogeneity/alignmententity1"
@@ -55,7 +65,7 @@ def is_valid_label(label):
 def strip_prefix(label):
   for dataset, prefix in LABEL_PREFIX_MAP.items():
     if label.startswith(prefix):
-      return dataset + "_" +label[len(prefix):]
+      return label[len(prefix):]
 
 
 PAIR_TO_DATASET_NAMES = {
@@ -64,4 +74,4 @@ PAIR_TO_DATASET_NAMES = {
     "snomed2nci": ["nci", "snomed"]
     }
 
-
+ROOT_STR = "!!ROOT"

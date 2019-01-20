@@ -43,7 +43,7 @@ def kl_div(true_dist, proposed_dist, eps=1e-7):
 
 class KLLoss(nn.modules.Module):
   def __init__(self):
-    super(MichaelLoss, self).__init__()
+    super(KLLoss, self).__init__()
   def forward(self, input, target):
     return  kl_div(input, target).mean()
 
@@ -68,7 +68,7 @@ def get_data():
 def get_and_maybe_load_model(train_ds):
   model = box_lib.Boxes(train_ds.vocab_size, FLAGS.embedding_size)
   model.to(FLAGS.device)
-  criterion = MichaelLoss()
+  criterion = KLLoss()
   #criterion = torch.nn.BCELoss()
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate, eps
       =1e-6)
@@ -138,7 +138,7 @@ def run_train_iters(model, criterion, optimizer,
         print_results_to_file(model, train_ds, sys.stdout)
 
       if epoch % FLAGS.save_freq == 0:
-        box_lib.confusion(dev_ds, model)
+        #box_lib.confusion(dev_ds, model)
         save_current_model(model, epoch)
 
       print_report(epoch, dev_loss, running_loss/len(train_dl.dataset), f)
