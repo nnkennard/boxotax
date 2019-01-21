@@ -1,3 +1,6 @@
+import collections
+import rdflib
+
 class RDFPredicates(object):
   SYNTAX_FIRST = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"
   SYNTAX_REST = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"
@@ -75,3 +78,27 @@ PAIR_TO_DATASET_NAMES = {
     }
 
 ROOT_STR = "!!ROOT"
+ROOT_IDX_STR = "0"
+
+def get_subclass_graph_from_owl_file(owl_file):
+  g = rdflib.Graph()
+  result = g.parse(owl_file)
+  graph = collections.defaultdict(set)
+
+  for subj, pred, obj in g:
+    if str(pred) == RDFPredicates.SUBCLASS_OF:
+      if is_valid_label(subj) and is_valid_label(obj):
+        graph[strip_prefix(obj)].add(strip_prefix(subj))
+
+  return graph
+
+
+def get_transitive_closure(graph, root, ancestor_list, seen, edges):
+  if root in seen:
+    return
+  seen.append(root)
+  for child in sorted(graph[root]):
+    get_transitive_closure(graph, child, ancestor_list+[root], seen, edges)
+  for ancestor in ancestor_list:
+    edges.append((ancestor, root))
+
