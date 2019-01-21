@@ -23,7 +23,7 @@ def main():
   oaei_lib.get_transitive_closure(
       graph, oaei_lib.ROOT_IDX_STR, [], [], transitive_edges)
 
-  negative_ratio = 10.0
+  negative_ratio = 1.0
   total_negative_edges = negative_ratio * len(transitive_edges)
 
   negative_edges = []

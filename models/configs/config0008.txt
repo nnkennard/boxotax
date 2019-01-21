@@ -8,7 +8,7 @@ report_path	reports/
 result_path	results/
 
 # Training params
-num_epochs	5000
+num_epochs	50
 patience	10000
 batch_size	60
 learning_rate	0.001

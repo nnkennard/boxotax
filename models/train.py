@@ -31,11 +31,11 @@ flags.DEFINE_string('device', 'cpu', 'device for torch option')
 flags.DEFINE_boolean('verbose', False, 'Whether to print batch loss')
 
 
-def kl_term(true_dist, proposed_dist):
+def kl_term(proposed_dist, true_dist):
   """KL divergence for a single term (i.e. element-wise, unreduced)"""
   return true_dist * (true_dist.log() - proposed_dist.log())
 
-def kl_div(true_dist, proposed_dist, eps=1e-7):
+def kl_div(proposed_dist, true_dist, eps=1e-7):
   """KL divergence, eps is for numerical stability (unreduced)"""
   true_dist = true_dist.clamp(eps, 1 - eps)
   proposed_dist = proposed_dist.clamp(eps, 1 - eps)
@@ -164,6 +164,9 @@ def run_train_iter(model, criterion, optimizer, train_dl):
         dsds
       loss = criterion(y_, y)
       running_loss += loss.item() * X.shape[0]
+
+      print(y)
+      print(y_)
 
     optimizer.zero_grad()
     loss.backward()

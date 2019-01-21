@@ -10,8 +10,8 @@ MIN_IND, DELTA_IND = range(2)
 
 UNRELATED, HYPER, HYPO, ALIGNED, UNKNOWN = range(5)
 
-UNRELATED_THRESHOLD = 0.05
-HYPER_THRESHOLD = 0.90
+UNRELATED_THRESHOLD = 1e-4
+HYPER_THRESHOLD = 1.0 - 1e-4
 
 maybe_hyper = lambda x: x > HYPER_THRESHOLD
 maybe_unrelated = lambda x: x < UNRELATED_THRESHOLD
@@ -127,10 +127,6 @@ def intersections(boxes1, boxes2):
   intersections_delta = torch.log(
       torch.clamp(intersections_max - intersections_min, 1e-7, 10000.0))
   return torch.stack([intersections_min, intersections_delta], 1)
-
-#def minmax_format(boxes):
-#  maxes =  boxes[:, MIN_IND, :] + torch.exp(boxes[:, DELTA_IND, :])
-#  return torch.stack([boxes[:, MIN_IND, :], maxes], 1)
 
 def get_cond_probs(boxes1, boxes2):
   """Calculate conditional probabilities of tensors of boxes.
