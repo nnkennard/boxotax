@@ -71,7 +71,6 @@ class BoxDataset(Dataset):
     # TODO: add test
     vocab = set(int(x) for x in np.ravel(data[:,:2]).tolist())
     self.vocab_size = int(max(vocab)) + 1
-    print(vocab)
 
   def __getitem__(self, index):
     return self.X[index], self.y[index]
@@ -125,12 +124,8 @@ def intersections(boxes1, boxes2):
   maxes1 = boxes1[:, MIN_IND, :] + torch.exp(boxes1[:, DELTA_IND, :])
   maxes2 = boxes2[:, MIN_IND, :] + torch.exp(boxes2[:, DELTA_IND, :])
   intersections_max = torch.min(maxes1, maxes2)
-  #print("Delta before log")
-  #print(intersections_max - intersections_min)
   intersections_delta = torch.log(
       torch.clamp(intersections_max - intersections_min, 1e-7, 10000.0))
-  #print("Delta after log")
-  #print(intersections_delta)
   return torch.stack([intersections_min, intersections_delta], 1)
 
 #def minmax_format(boxes):
@@ -145,16 +140,6 @@ def get_cond_probs(boxes1, boxes2):
     Input: two vectors of boxes in min-delta format
     Output: one vector of conditional probabilities (conditioned on boxes2)
   """
-  #b1 = minmax_format(boxes1)
-  #b2 = minmax_format(boxes2)
-  #print("Joint volume:")
-  #print(volumes(intersections(boxes1,boxes2)))
-  #print(volumes(boxes1))
-  #print(volumes(boxes2))
-  #print("Actual boxes")
-  #print(boxes1)
-  #print(boxes2)
-  #print(intersections(boxes1,boxes2))
   return volumes(intersections(boxes1, boxes2)) / volumes(boxes2)
 
 def softplus(x):

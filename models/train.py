@@ -59,7 +59,8 @@ def get_data():
   train_dl = DataLoader(train_ds, batch_size=FLAGS.batch_size,
       shuffle=True, num_workers=NUM_WORKERS)
   dev_ds = box_lib.BoxDataset(
-      FLAGS.train_path.replace("train", "dev"))
+      FLAGS.train_path.replace("train.binary", "dev"))
+      #FLAGS.train_path.replace("train", "dev"))
   dev_dl = DataLoader(dev_ds, batch_size=FLAGS.batch_size,
       shuffle=True, num_workers=NUM_WORKERS)
   return train_ds, train_dl, dev_ds, dev_dl
@@ -127,21 +128,21 @@ def run_train_iters(model, criterion, optimizer,
       dev_loss = criterion(model(dev_ds.X)[0],
           dev_labels).item()/len(dev_dl.dataset)
       if dev_loss < best_dev_loss:
-        print("Dev loss", dev_loss, "Best dev loss", best_dev_loss)
+        print("Dev loss", dev_loss, "Former best dev loss", best_dev_loss)
         best_dev_loss = dev_loss
         best_dev_loss_epoch = epoch
         save_current_model(model, epoch, is_best=True)
 
-        train_loss = criterion(model(train_ds.X)[0],
-          train_labels).item()/len(train_dl.dataset)
-        print_report(epoch, dev_loss, train_loss, sys.stdout)
-        print_results_to_file(model, train_ds, sys.stdout)
+      train_loss = criterion(model(train_ds.X)[0],
+        train_labels).item()/len(train_dl.dataset)
+      #print_report(epoch, dev_loss, train_loss, sys.stdout)
+      #print_results_to_file(model, train_ds, sys.stdout)
 
       if epoch % FLAGS.save_freq == 0:
         #box_lib.confusion(dev_ds, model)
         save_current_model(model, epoch)
 
-      print_report(epoch, dev_loss, running_loss/len(train_dl.dataset), f)
+      print_report(epoch, dev_loss, train_loss, f)
 
       if epoch >= best_dev_loss_epoch + FLAGS.patience:
         break
