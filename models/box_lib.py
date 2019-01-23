@@ -56,7 +56,6 @@ class BoxDataset(Dataset):
 
   def __init__(self, csv_path):
     data = np.loadtxt(csv_path)
-    self.len = len(data)
 
     # First two columns are the two entity indices, third is cond prob
     X_forward = data[:,:2].astype(np.long)
@@ -66,10 +65,16 @@ class BoxDataset(Dataset):
 
     self.X = torch.from_numpy(np.concatenate([X_forward, X_reverse]))
     self.y = torch.from_numpy(np.concatenate([self.y_forward, self.y_reverse]))
+    self.len = self.X.shape[0]
+    print("IN dataset")
+    print(self.X.shape)
+    print(self.y.shape)
 
 
     # TODO: add test
     vocab = set(int(x) for x in np.ravel(data[:,:2]).tolist())
+    print("vocab")
+    print(vocab)
     self.vocab_size = int(max(vocab)) + 1
 
   def __getitem__(self, index):
@@ -94,7 +99,9 @@ class Boxes(nn.Module):
   def forward(self, X):
     """Returns box embeddings for ids"""
     x = self.boxes[X]
-    #torch.div(self.boxes, torch.max(self.boxes))
+    #print(")"*80 + " max")
+    #print(torch.max(self.boxes))
+    torch.div(self.boxes, torch.max(self.boxes))
     norms = None
 
     cond_probs = get_cond_probs(x[:,0,:,:], x[:,1,:,:])

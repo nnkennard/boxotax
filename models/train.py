@@ -47,6 +47,16 @@ class KLLoss(nn.modules.Module):
   def forward(self, input, target):
     return  kl_div(input, target).mean()
 
+class StableBCELoss(nn.modules.Module):
+
+  def __init__(self):
+    super(StableBCELoss, self).__init__()
+
+  def forward(self, input, target):
+    neg_abs = - input.abs()
+    loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
+    return loss.mean()
+
 # For some reason, pytorch crashes with more workers
 NUM_WORKERS = 0
 
@@ -56,21 +66,30 @@ def setup():
 
 def get_data():
   train_ds = box_lib.BoxDataset(FLAGS.train_path)
+  print("data loader batch size", FLAGS.batch_size)
   train_dl = DataLoader(train_ds, batch_size=FLAGS.batch_size,
-      shuffle=True, num_workers=NUM_WORKERS)
+      shuffle=False, num_workers=NUM_WORKERS)
   dev_ds = box_lib.BoxDataset(
       FLAGS.train_path.replace("train.binary", "dev"))
       #FLAGS.train_path.replace("train", "dev"))
   dev_dl = DataLoader(dev_ds, batch_size=FLAGS.batch_size,
-      shuffle=True, num_workers=NUM_WORKERS)
+      shuffle=False, num_workers=NUM_WORKERS)
   return train_ds, train_dl, dev_ds, dev_dl
 
 
 def get_and_maybe_load_model(train_ds):
+  print("Again, vocab size")
+  print(train_ds.vocab_size)
   model = box_lib.Boxes(train_ds.vocab_size, FLAGS.embedding_size)
   model.to(FLAGS.device)
-  criterion = KLLoss()
+   
+  # ababa loss choices
+  #criterion = KLLoss()
+  #criterion = StableBCELoss()
   #criterion = torch.nn.BCELoss()
+  criterion = torch.nn.MSELoss()
+  #criterion = torch.nn.KLDivLoss()
+
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate, eps
       =1e-6)
   return model, criterion, optimizer
@@ -119,13 +138,21 @@ def run_train_iters(model, criterion, optimizer,
   with open(get_report_file_name(), 'w') as f:
 
     for epoch in range(FLAGS.num_epochs):
+      
+      print("train ds")
+      print(train_ds.X.shape)
 
       running_loss = run_train_iter(model, criterion, optimizer, train_dl)
-      print(running_loss)
+      #print(running_loss)
 
       model.eval()
 
-      dev_loss = criterion(model(dev_ds.X)[0],
+      dev_predictions = model(dev_ds.X)[0]
+      print("*" * 80)
+      print(dev_predictions)
+      print(dev_labels)
+      print("*" * 80)
+      dev_loss = criterion(dev_predictions,
           dev_labels).item()/len(dev_dl.dataset)
       if dev_loss < best_dev_loss:
         print("Dev loss", dev_loss, "Former best dev loss", best_dev_loss)
@@ -154,19 +181,22 @@ def run_train_iter(model, criterion, optimizer, train_dl):
   running_loss = 0.0
 
   for X, y in train_dl:
+    print(X.shape)
+    print(y.shape)
     torch.cuda.empty_cache()
     X, y = X.to(FLAGS.device), y.to(FLAGS.device)
 
     #TODO: Use more canonical regularization maybe
     with torch.set_grad_enabled(True):
       y_, _ = model(X)
+
+      print(y)
+      print(y_)
+
       if any(torch.isnan(y_)):
         dsds
       loss = criterion(y_, y)
       running_loss += loss.item() * X.shape[0]
-
-      print(y)
-      print(y_)
 
     optimizer.zero_grad()
     loss.backward()
@@ -228,6 +258,10 @@ def main():
       dev_ds)
 
   evaluate(model, train_ds, dev_ds)
+  print(model.boxes[:, box_lib.MIN_IND, :])
+  
+  maxes1 = model.boxes[:, box_lib.MIN_IND, :] + torch.exp(model.boxes[:, box_lib.DELTA_IND, :])
+  print(maxes1)
 
 
 if __name__ == "__main__":

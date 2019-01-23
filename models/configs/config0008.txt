@@ -1,5 +1,5 @@
 # Model params
-embedding_size	50
+embedding_size	5
 
 # Data location params
 train_path	data/sample/train_medium.txt.final
@@ -8,10 +8,10 @@ report_path	reports/
 result_path	results/
 
 # Training params
-num_epochs	50
+num_epochs	3000
 patience	10000
 batch_size	60
-learning_rate	0.001
+learning_rate	0.01
 l2_lambda	0.000
 
 # Other
