@@ -33,9 +33,5 @@ def main():
         f.write("\t".join([parent_idx, large_vocab[child]]) + "\n")
 
 
-
-
-
-
 if __name__ == "__main__":
   main()

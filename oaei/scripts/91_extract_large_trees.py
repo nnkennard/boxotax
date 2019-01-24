@@ -5,8 +5,6 @@ import sys
 
 import oaei_lib
 
-
-
 def main():
   random.seed(43)
   owl_file, dataset = sys.argv[1:3]

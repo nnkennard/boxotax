@@ -15,7 +15,7 @@ def main():
   train_end = int(train_frac * num_examples)
   dev_end = int((train_frac + dev_frac) * num_examples)
 
-  output_suffixes = ["train", "dev", "test"]
+  output_suffixes = ["train.no_neg", "dev", "test"]
 
   train_examples = input_lines[:train_end]
   dev_examples = input_lines[train_end:dev_end]
@@ -23,7 +23,8 @@ def main():
 
   for suffix, dataset in zip(output_suffixes, [train_examples, dev_examples,
     test_examples]):
-    with open(input_file.replace("tpairs", suffix), 'w') as f:
+    suffixed_filename = input_file + "." + suffix
+    with open(suffixed_filename, 'w') as f:
       f.write("".join(dataset))
 
 if __name__ == "__main__":
