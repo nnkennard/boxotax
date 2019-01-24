@@ -84,10 +84,10 @@ def get_and_maybe_load_model(train_ds):
   model.to(FLAGS.device)
    
   # ababa loss choices
-  #criterion = KLLoss()
+  criterion = KLLoss()
   #criterion = StableBCELoss()
   #criterion = torch.nn.BCELoss()
-  criterion = torch.nn.MSELoss()
+  #criterion = torch.nn.MSELoss()
   #criterion = torch.nn.KLDivLoss()
 
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate, eps
@@ -190,7 +190,9 @@ def run_train_iter(model, criterion, optimizer, train_dl):
     with torch.set_grad_enabled(True):
       y_, _ = model(X)
 
+      print("y")
       print(y)
+      print("y_")
       print(y_)
 
       if any(torch.isnan(y_)):
