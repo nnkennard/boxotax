@@ -131,6 +131,8 @@ def intersections(boxes1, boxes2):
   maxes1 = boxes1[:, MIN_IND, :] + torch.exp(boxes1[:, DELTA_IND, :])
   maxes2 = boxes2[:, MIN_IND, :] + torch.exp(boxes2[:, DELTA_IND, :])
   intersections_max = torch.min(maxes1, maxes2)
+  print("Intersectins max")
+  print(intersections_max)
   intersections_delta = torch.log(
       torch.clamp(intersections_max - intersections_min, 1e-7, 10000.0))
   return torch.stack([intersections_min, intersections_delta], 1)

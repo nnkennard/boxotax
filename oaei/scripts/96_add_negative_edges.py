@@ -39,7 +39,7 @@ def main():
     else:
       negative_edges.append((parent, child))
 
-  output_file = input_pair_file.replace("noneg.", "")
+  output_file = input_pair_file.replace(".no_neg", "")
 
   with open(output_file, 'w') as f:
     for parent, child in transitive_edges:

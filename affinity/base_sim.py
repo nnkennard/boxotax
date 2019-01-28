@@ -12,7 +12,8 @@ ENGLISH_STOPWORDS = stopwords.words('english')
 STEMMER = SnowballStemmer("english")
 
 def normalize(input_string):
-  # TODO : All caps
+  if input_string.isupper():
+    input_string = input_string.lower()
   if "ROOT" in input_string:
     return [input_string]
   if "_" in input_string:
@@ -36,6 +37,7 @@ def common_word_score(s_tokens, t_tokens):
   common_words = set(s_tokens).intersection(set(t_tokens))
   return 2.0 * len(common_words) / denom
 
+
 def base_sim(label_s, label_t):
 
   if label_s == label_t:
@@ -53,10 +55,3 @@ def base_sim(label_s, label_t):
     return 1.0
   else:
     return common_word_score(s_content_tokens, t_content_tokens)
-
-def main():
-
-  print(base_sim("my second questioning", "MyFirstQuestioning"))
-  
-if __name__ == "__main__":
-  main()
