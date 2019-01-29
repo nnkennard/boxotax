@@ -16,6 +16,12 @@ class RDFPredicates(object):
   ONE_OF = "http://www.w3.org/2002/07/owl#oneOf"
   UNION_OF = "http://www.w3.org/2002/07/owl#unionOf"
 
+# UMLS datasets
+GO = "go"
+HPO = "hpo"
+MSH = "msh"
+
+# Largebio datasets
 FMA = "fma"
 NCI = "nci"
 SNOMED = "snomed"
@@ -51,6 +57,8 @@ START_INDEX ={
     NCI: 10000,
     FMA: 100000,
     SNOMED: 200000,
+    GO: 100000,
+    HPO: 200000,
     }
 
 ENTITY_1 = "http://knowledgeweb.semanticweb.org/heterogeneity/alignmententity1"

@@ -7,6 +7,7 @@ import oaei_lib
 def main():
   random.seed(43)
   input_pair_file = sys.argv[1]
+  assert input_pair_file.endswith(".tpairs.train.no_neg")
 
   graph = collections.defaultdict(list)
   node_set = set()
@@ -39,7 +40,8 @@ def main():
     else:
       negative_edges.append((parent, child))
 
-  output_file = input_pair_file.replace(".no_neg", "")
+  output_file = input_pair_file.replace(".no_neg", ".binary")
+  print(output_file)
 
   with open(output_file, 'w') as f:
     for parent, child in transitive_edges:

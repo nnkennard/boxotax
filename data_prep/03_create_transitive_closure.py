@@ -5,6 +5,7 @@ import oaei_lib
 
 def main():
   input_pair_file = sys.argv[1]
+  assert input_pair_file.endswith('.pairs')
   graph = collections.defaultdict(list)
 
   with open(input_pair_file, 'r') as f:

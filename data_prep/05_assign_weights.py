@@ -134,7 +134,8 @@ def assign_probabilities(input_file, info_files):
   input_nodes = set(input_intransitive_edges.keys())
   input_nodes.update(set.union(*input_intransitive_edges.values()))
 
-  with open(input_file + ".conditional", 'w') as f:
+  output_file = input_file.replace(".binary","") + ".conditional"
+  with open(output_file, 'w') as f:
    for parent, child_cond_probs in input_conditional_probabilities.items():
     for child, cond_prob in child_cond_probs.items():
       rev_prob = input_conditional_probabilities[child][parent]
@@ -143,6 +144,7 @@ def assign_probabilities(input_file, info_files):
 
 def main():
   train_file = sys.argv[1]
+  assert train_file.endswith("pairs.train.binary")
   dev_file = train_file.replace(".train.binary", ".dev")
   test_file = train_file.replace(".train.binary", ".test")
 
