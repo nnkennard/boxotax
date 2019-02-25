@@ -2,7 +2,7 @@ import collections
 import random
 import sys
 
-import oaei_lib
+import box_lib
 
 def main():
   random.seed(43)
@@ -21,8 +21,8 @@ def main():
   node_list = sorted(node_set)
 
   transitive_edges = []
-  oaei_lib.get_transitive_closure(
-      graph, oaei_lib.ROOT_IDX_STR, [], [], transitive_edges)
+  box_lib.get_transitive_closure(
+      graph, box_lib.ROOT_IDX_STR, [], [], transitive_edges)
 
   negative_ratio = 1.0
   total_negative_edges = negative_ratio * len(transitive_edges)

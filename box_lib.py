@@ -21,6 +21,15 @@ GO = "go"
 HPO = "hpo"
 MSH = "msh"
 
+SAB_MAP = {"msh": "MSH",
+    "go": "GO",
+    "hpo": "HPO"}
+
+PREFIX_MAP =  {"msh": "MSH:",
+    "go": "GO:",
+    "hpo": "HPO:"}
+
+
 # Largebio datasets
 FMA = "fma"
 NCI = "nci"
@@ -32,7 +41,7 @@ class OAEINode(object):
     self.label = label
     self.subclasses = []
     self.parent = None
-  
+
   def set_parent(self, parent):
     self.parent = parent
 
@@ -59,6 +68,7 @@ START_INDEX ={
     SNOMED: 200000,
     GO: 100000,
     HPO: 200000,
+    MSH: 500000
     }
 
 ENTITY_1 = "http://knowledgeweb.semanticweb.org/heterogeneity/alignmententity1"
@@ -86,7 +96,8 @@ PAIR_TO_DATASET_NAMES = {
     }
 
 ROOT_STR = "!!ROOT"
-ROOT_IDX_STR = "0"
+#ROOT_IDX_STR = "0"
+ROOT_IDX_STR = "000000"
 
 def get_subclass_graph_from_owl_file(owl_file):
   g = rdflib.Graph()

@@ -2,7 +2,7 @@ import random
 import rdflib
 import sys
 
-import oaei_lib
+import box_lib
 
 def get_vocab_from_file(vocab_file):
   vocab_dict = {}
@@ -18,13 +18,13 @@ def main():
   large_vocab_file, small_owl_file, dataset = sys.argv[1:4]
   large_vocab = get_vocab_from_file(large_vocab_file)
 
-  graph = oaei_lib.get_subclass_graph_from_owl_file(small_owl_file)
+  graph = box_lib.get_subclass_graph_from_owl_file(small_owl_file)
 
   superclass_nodes = set(graph.keys())
   subclass_nodes = set(set.union(*graph.values()))
   all_nodes = superclass_nodes.union(subclass_nodes)
   non_subclass_nodes = all_nodes - subclass_nodes
-  graph[oaei_lib.ROOT_STR] = list(non_subclass_nodes)
+  graph[box_lib.ROOT_STR] = list(non_subclass_nodes)
 
   with open(small_owl_file.replace("owl", "pairs"), 'w') as f:
     for parent, children in graph.items():

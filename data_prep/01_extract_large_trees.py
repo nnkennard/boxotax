@@ -3,23 +3,23 @@ import random
 import rdflib
 import sys
 
-import oaei_lib
+import box_lib
 
 def main():
   random.seed(43)
   owl_file, dataset = sys.argv[1:3]
 
-  graph = oaei_lib.get_subclass_graph_from_owl_file(owl_file)
+  graph = box_lib.get_subclass_graph_from_owl_file(owl_file)
 
   superclass_nodes = set(graph.keys())
   subclass_nodes = set(set.union(*graph.values()))
   all_nodes = superclass_nodes.union(subclass_nodes)
   non_subclass_nodes = all_nodes - subclass_nodes
-  graph[oaei_lib.ROOT_STR] = list(non_subclass_nodes)
+  graph[box_lib.ROOT_STR] = list(non_subclass_nodes)
 
-  node_to_index = {node : str(oaei_lib.START_INDEX[dataset] + i) for
+  node_to_index = {node : str(box_lib.START_INDEX[dataset] + i) for
       i, node in enumerate(sorted(all_nodes))}
-  node_to_index[oaei_lib.ROOT_STR] = "0"
+  node_to_index[box_lib.ROOT_STR] = "0"
   index_to_node = {index: node for node, index in node_to_index.items()}
 
   with open(owl_file.replace("owl", "pairs"), 'w') as f:

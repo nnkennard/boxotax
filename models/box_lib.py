@@ -6,18 +6,19 @@ from torch.distributions import uniform
 import numpy as np
 
 MIN_IND, DELTA_IND = range(2)
-#MAX_IND = DELTA_IND
 
 UNRELATED, HYPER, HYPO, ALIGNED, UNKNOWN = range(5)
+label_names = ["UNRELATED", "HYPER", "HYPO", "ALIGNED", "UNKNOWN"]
 
-UNRELATED_THRESHOLD = 1e-4
-HYPER_THRESHOLD = 1.0 - 1e-4
+UNRELATED_THRESHOLD = 1e-7
+HYPER_THRESHOLD = 1.0 - 1e-10
 
 maybe_hyper = lambda x: x > HYPER_THRESHOLD
 maybe_unrelated = lambda x: x < UNRELATED_THRESHOLD
 maybe_hypo = lambda x: x < HYPER_THRESHOLD and x > UNRELATED_THRESHOLD
 
 def label_multi(x, y):
+  #print(x, y, maybe_hypo(x), maybe_hypo(y), maybe_hyper(x), maybe_hyper(y))
   if maybe_hypo(x) and maybe_hyper(y):
     return HYPO
   elif maybe_hyper(x) and maybe_hypo(y):
@@ -38,7 +39,6 @@ def label(x, y):
 
 label_v = np.vectorize(label)
 label_multi_v = np.vectorize(label_multi)
-
 
 def set_random_seed(seed):
   np.random.seed(seed)
@@ -66,15 +66,10 @@ class BoxDataset(Dataset):
     self.X = torch.from_numpy(np.concatenate([X_forward, X_reverse]))
     self.y = torch.from_numpy(np.concatenate([self.y_forward, self.y_reverse]))
     self.len = self.X.shape[0]
-    print("IN dataset")
-    print(self.X.shape)
-    print(self.y.shape)
 
 
     # TODO: add test
     vocab = set(int(x) for x in np.ravel(data[:,:2]).tolist())
-    print("vocab")
-    print(vocab)
     self.vocab_size = int(max(vocab)) + 1
 
   def __getitem__(self, index):
@@ -99,8 +94,6 @@ class Boxes(nn.Module):
   def forward(self, X):
     """Returns box embeddings for ids"""
     x = self.boxes[X]
-    #print(")"*80 + " max")
-    #print(torch.max(self.boxes))
     torch.div(self.boxes, torch.max(self.boxes))
     norms = None
 
@@ -131,8 +124,6 @@ def intersections(boxes1, boxes2):
   maxes1 = boxes1[:, MIN_IND, :] + torch.exp(boxes1[:, DELTA_IND, :])
   maxes2 = boxes2[:, MIN_IND, :] + torch.exp(boxes2[:, DELTA_IND, :])
   intersections_max = torch.min(maxes1, maxes2)
-  print("Intersectins max")
-  print(intersections_max)
   intersections_delta = torch.log(
       torch.clamp(intersections_max - intersections_min, 1e-7, 10000.0))
   return torch.stack([intersections_min, intersections_delta], 1)

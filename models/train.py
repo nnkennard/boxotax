@@ -84,10 +84,10 @@ def get_and_maybe_load_model(train_ds):
   model.to(FLAGS.device)
    
   # ababa loss choices
-  criterion = KLLoss()
+  #criterion = KLLoss()
   #criterion = StableBCELoss()
   #criterion = torch.nn.BCELoss()
-  #criterion = torch.nn.MSELoss()
+  criterion = torch.nn.MSELoss()
   #criterion = torch.nn.KLDivLoss()
 
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate, eps
@@ -181,19 +181,12 @@ def run_train_iter(model, criterion, optimizer, train_dl):
   running_loss = 0.0
 
   for X, y in train_dl:
-    print(X.shape)
-    print(y.shape)
     torch.cuda.empty_cache()
     X, y = X.to(FLAGS.device), y.to(FLAGS.device)
 
     #TODO: Use more canonical regularization maybe
     with torch.set_grad_enabled(True):
       y_, _ = model(X)
-
-      print("y")
-      print(y)
-      print("y_")
-      print(y_)
 
       if any(torch.isnan(y_)):
         dsds
@@ -229,7 +222,8 @@ def print_results_to_file(model, ds, f):
   for i in zip(true_pairs[:,0], true_pairs[:,1],
      pred_forward, pred_reverse,
      ds.y_forward, ds.y_reverse,
-     multi_pred_labels, multi_labels):
+     multi_pred_labels, multi_labels
+     ):
    f.write("\t".join([str(j) for j in i]))
    f.write("\n")
 

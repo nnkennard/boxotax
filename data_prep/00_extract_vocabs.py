@@ -3,7 +3,7 @@ import random
 import rdflib
 import sys
 
-import oaei_lib
+import box_lib
 
 def get_subclass_graph_from_text_file(text_file):
   graph = collections.defaultdict(set)
@@ -24,11 +24,11 @@ def main():
   subclass_nodes = set(set.union(*graph.values()))
   all_nodes = superclass_nodes.union(subclass_nodes)
   non_subclass_nodes = all_nodes - subclass_nodes
-  graph[oaei_lib.ROOT_STR] = list(non_subclass_nodes)
+  graph[box_lib.ROOT_STR] = list(non_subclass_nodes)
 
-  node_to_index = {node : str(oaei_lib.START_INDEX[dataset] + i) for
+  node_to_index = {node : str(box_lib.START_INDEX[dataset] + i) for
       i, node in enumerate(sorted(all_nodes))}
-  node_to_index[oaei_lib.ROOT_STR] = "0"
+  node_to_index[box_lib.ROOT_STR] = "0"
   index_to_node = {index: node for node, index in node_to_index.items()}
 
   with open(text_file.replace("txt", "pairs"), 'w') as f:

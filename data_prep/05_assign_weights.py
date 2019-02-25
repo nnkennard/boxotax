@@ -1,7 +1,7 @@
 import collections
 import sys
 
-import oaei_lib
+import box_lib
 
 POSITIVE = "1"
 NEGATIVE = "0"
@@ -41,7 +41,7 @@ def transitive_reduction(edges):
   for parent, children in edges.items():
     intransitive_edges_constructor[parent].update(children)
 
-  for i in bfs_order(oaei_lib.ROOT_IDX_STR, edges):
+  for i in bfs_order(box_lib.ROOT_IDX_STR, edges):
     for j in edges[i]:
       for k in edges[j]:
         if k in edges[i]:
@@ -107,7 +107,7 @@ def assign_probabilities(input_file, info_files):
   for leaf in info_leaves:
     unary_weights[leaf] = DUMMY_LEAF_WEIGHT
 
-  total_weight = assign_weights(oaei_lib.ROOT_IDX_STR, unary_weights,
+  total_weight = assign_weights(box_lib.ROOT_IDX_STR, unary_weights,
       info_intransitive_edges)
 
   for node, weight in unary_weights.items():
@@ -116,7 +116,7 @@ def assign_probabilities(input_file, info_files):
   # Calculate conditional probabilities
 
   conditional_probabilities = collections.defaultdict(dict)
-  assign_conditional_probabilities(oaei_lib.ROOT_IDX_STR,
+  assign_conditional_probabilities(box_lib.ROOT_IDX_STR,
       conditional_probabilities, info_intransitive_edges, unary_weights)
 
   # Print out only probabilities that are in input tree.
@@ -124,7 +124,7 @@ def assign_probabilities(input_file, info_files):
       _) = get_transitive_reduction_from_files([input_file])
 
   input_conditional_probabilities = collections.defaultdict(dict)
-  assign_conditional_probabilities(oaei_lib.ROOT_IDX_STR,
+  assign_conditional_probabilities(box_lib.ROOT_IDX_STR,
       input_conditional_probabilities, input_intransitive_edges, unary_weights)
 
   for parent, child in input_negative_edges:

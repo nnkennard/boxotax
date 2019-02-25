@@ -1,19 +1,11 @@
-import sys
-
-SAB_MAP = {"msh": "MSH",
-    "go": "GO",
-    "hpo": "HPO"}
-
-PREFIX_MAP =  {"msh": "MSH:",
-    "go": "GO:",
-    "hpo": "HPO:"}
-
+import box_lib
+mport sys
 
 
 def main():
   mrconso_file, source, output_dir = sys.argv[1:4]
-  source_ab = SAB_MAP[source]
-  prefix = PREFIX_MAP[source]
+  source_ab = box_lib.SAB_MAP[source]
+  prefix = box_lib.PREFIX_MAP[source]
   vocab = {}
   with open(mrconso_file, 'r') as f:
     for line in f:

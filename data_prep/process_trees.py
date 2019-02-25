@@ -20,21 +20,16 @@ def translate_to_interim_vocab(pair_file):
       hypo, hyper = line.strip().split("\t")
       vocab.update([hypo, hyper])
       pairs.append((hypo, hyper))
-  print(len(vocab))
-  print(len(pairs))
   assert len(vocab) < 999999
   vocab_map = {word:str(idx).zfill(6) for idx, word in
       enumerate(sorted(list(vocab)))}
-  #print(vocab_map)
   translated_pairs = [(vocab_map[x], vocab_map[y]) for x, y in pairs]
-  print(len(translated_pairs))
   interim_vocab = {v: k for k, v in vocab_map.items()}
   return interim_vocab, translated_pairs
 
 
 def pairs_to_graph(pairs):
 
-  print("pairs to graph")
   graph = collections.defaultdict(list)
   for hypo, hyper in pairs:
     graph[hyper].append(hypo)
@@ -60,7 +55,6 @@ def get_transitive_closure(graph, root, ancestor_list, seen, edges):
 
 
 def get_transitive_closure_from_pairs(pairs):
-  print("getting transitive closure from pairs")
   graph = pairs_to_graph(pairs)
 
   transitive_edges = []
@@ -72,11 +66,21 @@ def get_transitive_closure_from_pairs(pairs):
   return transitive_edges
 
 
-def write_to_file(subset, file_name, vocab):
-  print("write to file")
+def write_to_file(subset, probs, file_name, vocab):
+  if probs is None:
+    prob = 0.0
+  else:
+    prob = None
+
   with open(file_name, 'w') as f:
     for hypo, hyper in subset:
-      f.write(vocab[hypo] + "\t" + vocab[hyper] + "\n")
+      if prob is not 0.0:
+        prob = probs[hypo][hyper]
+
+      f.write(
+          "\t".join(
+            [vocab[hypo], vocab[hyper], str(prob)]) + "\n")
+
 
 class SingleSourceDataset(object):
   def __init__(self, transitive_pairs, vocab):
@@ -97,7 +101,6 @@ class SingleSourceDataset(object):
     return sorted(list(node_set))
 
   def make_train_test_split(self):
-    print("train test split")
     random.seed(78)
     train_frac, dev_frac, test_frac = [0.8, 0.1, 0.1]
 
@@ -116,7 +119,6 @@ class SingleSourceDataset(object):
     return train_examples, dev_examples, test_examples
 
   def calculate_negatives(self):
-    print("calculate negatives")
     negative_edges = []
     total_negative_edges = NEGATIVE_RATIO * len(self.train)
 
@@ -133,18 +135,17 @@ class SingleSourceDataset(object):
         pbar.update(1)
     pbar.close()
 
-    print(len(negative_edges))
     return negative_edges
 
   def print_datasets(self, path, dataset_name):
-    print("Print datasets")
     file_prefix = path + "/" + dataset_name
-    subset_suffix_pairs = [(self.train, ".train"), (self.dev, ".dev"),
-        (self.test, ".test"), (self.negatives, ".neg")]
-    for subset, suffix in subset_suffix_pairs:
+    subset_probs_suffix = [(self.train, self.train_probs, ".train"),
+        (self.dev, self.dev_probs, ".dev"),
+        (self.test, self.test_probs, ".test"),
+        (self.negatives, None, ".neg")]
+    for subset, probs, suffix in subset_probs_suffix:
       file_name = file_prefix + suffix
-      print(file_name)
-      write_to_file(subset, file_name, self.vocab)
+      write_to_file(subset, probs, file_name, self.vocab)
 
 
 def main():
@@ -155,7 +156,7 @@ def main():
 
   single_source_dataset = SingleSourceDataset(transitive_pairs, interim_vocab)
   single_source_dataset.print_datasets("/iesl/canvas/nnayak/temp/",
-  "trial_dataset")
+  name)
 
 if __name__ == "__main__":
   main()

@@ -1,7 +1,7 @@
 import collections
 import sys
 
-import oaei_lib
+import box_lib
 
 def main():
   input_pair_file = sys.argv[1]
@@ -13,10 +13,12 @@ def main():
       parent, child = line.strip().split("\t")
       graph[parent].append(child)
 
+  print(graph)
+
   transitive_edges = []
 
-  oaei_lib.get_transitive_closure(
-      graph, oaei_lib.ROOT_IDX_STR, [], [], transitive_edges)
+  box_lib.get_transitive_closure(
+      graph, box_lib.ROOT_IDX_STR, [], [], transitive_edges)
 
 
   with open(input_pair_file.replace("pairs", "tpairs"), 'w') as f:

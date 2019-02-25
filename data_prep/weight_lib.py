@@ -125,7 +125,6 @@ def assign_probabilities(input_pairs, info_pairs):
   for hypo, hyper in input_pairs:
     cond_prob = unary_weights[hypo]/unary_weights[hyper]
     input_conditional_probabilities[hypo][hyper] = cond_prob
-    input_conditional_probabilities[hyper][hypo] = 1.0
 
   return input_conditional_probabilities
 
