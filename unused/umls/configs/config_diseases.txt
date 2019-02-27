@@ -1,1 +1,0 @@
-config_msh_mth	CHD|RN	None	None	None	B2.2.1.2.1

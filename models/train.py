@@ -70,25 +70,17 @@ def get_data():
   train_dl = DataLoader(train_ds, batch_size=FLAGS.batch_size,
       shuffle=False, num_workers=NUM_WORKERS)
   dev_ds = box_lib.BoxDataset(
-      FLAGS.train_path.replace("train.binary", "dev"))
-      #FLAGS.train_path.replace("train", "dev"))
+      FLAGS.train_path.replace(".train", ".dev"))
   dev_dl = DataLoader(dev_ds, batch_size=FLAGS.batch_size,
       shuffle=False, num_workers=NUM_WORKERS)
   return train_ds, train_dl, dev_ds, dev_dl
 
 
 def get_and_maybe_load_model(train_ds):
-  print("Again, vocab size")
-  print(train_ds.vocab_size)
   model = box_lib.Boxes(train_ds.vocab_size, FLAGS.embedding_size)
   model.to(FLAGS.device)
-   
-  # ababa loss choices
-  #criterion = KLLoss()
-  #criterion = StableBCELoss()
-  #criterion = torch.nn.BCELoss()
+ 
   criterion = torch.nn.MSELoss()
-  #criterion = torch.nn.KLDivLoss()
 
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate, eps
       =1e-6)
@@ -138,7 +130,6 @@ def run_train_iters(model, criterion, optimizer,
   with open(get_report_file_name(), 'w') as f:
 
     for epoch in range(FLAGS.num_epochs):
-      
       print("train ds")
       print(train_ds.X.shape)
 
@@ -227,6 +218,10 @@ def print_results_to_file(model, ds, f):
    f.write("\t".join([str(j) for j in i]))
    f.write("\n")
 
+def eval_true_alignments(model):
+  true_ds = box_lib.BoxDataset(FLAGS.train_path.replace('train', 'true'))
+  with open(get_result_file_name('true'), 'w') as f:
+    print_results_to_file(model, true_ds, f)
 
 def evaluate(model, train_ds, dev_ds):
   model.load_state_dict(torch.load(get_save_file_name(epoch=-1, is_best=True)))
@@ -234,6 +229,7 @@ def evaluate(model, train_ds, dev_ds):
     print_results_to_file(model, train_ds, f)
   with open(get_result_file_name('dev'), 'w') as f:
     print_results_to_file(model, dev_ds, f)
+  eval_true_alignments(model)
 
 def find_universe_size(boxes):
   boxes_min = torch.min(boxes[:,box_lib.MIN_IND,:])
