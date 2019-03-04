@@ -14,24 +14,21 @@ class SourceMap(object):
     for scui, labels in self.label_map.items():
       new_label_map[scui] = sorted(list(labels))
 
-    del(self.label_map)
-
     self.label_map = new_label_map
     self.finalized = True
 
   def get_scuis(self, cui):
     return self.cui_map[cui]
 
-  def get_scui_pairs(self, cui1, cui2):
+  def convert_scui_pairs(self, cui1, cui2):
     scui_pair_list = [(scui1, scui2) for scui1 in self.cui_map[cui1]
         for scui2 in self.cui_map[cui2]]
     return scui_pair_list
 
-  def get_text_pairs(self, pairs):
+  def get_scui_pairs(self, pairs):
     text_pairs = []
     for cui1, cui2 in pairs:
-      for scui1, scui2 in self.get_scui_pairs(cui1, cui2):
-        text_pairs.append((self.label_map[scui1][0], self.label_map[scui2][0]))
+      text_pairs += self.convert_scui_pairs(cui1, cui2)
     return text_pairs
 
 
@@ -81,13 +78,17 @@ def main():
         pair_map[hypo_source].append((hypo, hyper))
 
   for source_name in box_lib.UMLS_SOURCE_NAMES:
-    sources[source_name].finalize_label_map()
-    final_pairs = sources[source_name].get_text_pairs(
-        pair_map[source_name])
+    source_map = sources[source_name]
+    source_map.finalize_label_map()
+    final_pairs = source_map.get_scui_pairs(pair_map[source_name])
     output_file = output_dir + "/" + source_name + ".txt"
     with open(output_file, 'w') as f:
       for hypo, hyper in final_pairs:
         f.write(hypo + "\t" + hyper + "\n")
+    output_label_file = output_dir + "/" + source_name + ".labels"
+    with open(output_label_file, 'w') as f:
+      for scui, labels in source_map.label_map.items():
+        f.write("\t".join([scui] + labels) + "\n")
 
 
 if __name__ == "__main__":

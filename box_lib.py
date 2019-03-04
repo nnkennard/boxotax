@@ -17,9 +17,14 @@ class RDFPredicates(object):
   UNION_OF = "http://www.w3.org/2002/07/owl#unionOf"
 
 # UMLS datasets
-GO = "go"
-HPO = "hpo"
-MSH = "msh"
+GO = "GO"
+HPO = "HPO"
+MSH = "MSH"
+OMIM = "OMIM"
+
+UMLS_SOURCE_NAMES =  [GO, HPO, MSH, OMIM
+    ]
+
 
 SAB_MAP = {"msh": "MSH",
     "go": "GO",
