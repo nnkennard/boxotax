@@ -28,8 +28,6 @@ class SourceMap(object):
     return scui_pair_list
 
   def get_text_pairs(self, pairs):
-    print(self.source)
-    #assert self.finalized
     text_pairs = []
     for cui1, cui2 in pairs:
       for scui1, scui2 in self.get_scui_pairs(cui1, cui2):
@@ -70,29 +68,26 @@ def main():
         sources[sab].cui_map[cui].add(scui)
         sources[sab].label_map[scui].add(label_str)
 
-  for source_name in box_lib.UMLS_SOURCE_NAMES:
-    print(source_name)
-    sources[source].finalize_label_map()
-    print(sources[source].finalized)
-
   pair_map = {source_name:list() for source_name in box_lib.UMLS_SOURCE_NAMES}
 
   with open(mrrel_file, 'r') as f:
     for line in f:
       fields = line.strip().split("|")
-      (hypo, rel, hyper, hypo_source, hyper_source) = (fields[0], fields[3],
+      (hyper, rel, hypo, hyper_source, hypo_source) = (fields[0], fields[3],
           fields[4], fields[10], fields[11])
       if (hypo_source in box_lib.UMLS_SOURCE_NAMES
           and hypo_source == hyper_source
           and rel == "CHD"):
         pair_map[hypo_source].append((hypo, hyper))
 
-  final_pairs = collections.defaultdict(list)
-
   for source_name in box_lib.UMLS_SOURCE_NAMES:
-    final_pairs[source_name] += sources[source_name].get_text_pairs(
+    sources[source_name].finalize_label_map()
+    final_pairs = sources[source_name].get_text_pairs(
         pair_map[source_name])
-  print(final_pairs)
+    output_file = output_dir + "/" + source_name + ".txt"
+    with open(output_file, 'w') as f:
+      for hypo, hyper in final_pairs:
+        f.write(hypo + "\t" + hyper + "\n")
 
 
 if __name__ == "__main__":
