@@ -1,0 +1,20 @@
+# Model params
+embedding_size	40
+
+# Data location params
+train_path	data/sample/train_medium_no_neg.txt.final
+save_path	saved_params/
+report_path	reports/
+result_path	results/
+
+# Training params
+num_epochs	200
+patience	200
+batch_size	32
+learning_rate	0.01
+l2_lambda	0.001
+
+# Other
+random_seed	43
+device	cuda
+verbose	False

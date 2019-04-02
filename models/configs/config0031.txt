@@ -1,0 +1,20 @@
+# Model params
+embedding_size 10
+
+# Data location params
+train_path	../oaei/data_umls/hpo.tpairs.train.binary.conditional
+save_path	saved_params/
+report_path	reports/
+result_path	results/
+
+# Training params
+num_epochs	5
+patience	10
+batch_size	512
+learning_rate	0.01
+l2_lambda	0.000
+
+# Other
+random_seed	43
+device	cuda
+verbose	False

@@ -19,6 +19,7 @@ def main():
     for line in f:
       if not line.strip():
         continue
+<<<<<<< HEAD
       (x, y, forward_pred, reverse_pred, forward_true, reverse_true, 
               pred_label,true_label
               )= line.strip().split()
@@ -28,6 +29,14 @@ def main():
         probs[label_name].append((forward_pred, reverse_pred))
         true_probs[label_name].append((forward_true, reverse_true))
         true_labels[label_name].append(true_label)
+=======
+      (x, y, forward_pred, reverse_pred, forward_true, reverse_true, pred_label,
+          true_label)= line.strip().split()
+      label_name = labels[int(true_label)]
+      probs[label_name].append((forward_pred, reverse_pred))
+      true_probs[label_name].append((forward_true, reverse_true))
+      true_labels[label_name].append(true_label)
+>>>>>>> 44ae0172d780422679579d84fbfc4dede847be0f
 
   fig, axes = plt.subplots(2, 5, figsize=(20, 10))
   for x in range(2):
@@ -49,8 +58,12 @@ def main():
     set_lims(ax)
     if len(k):
       plt.scatter(k[:,0], k[:,1],
+<<<<<<< HEAD
         c=fake_label_numbers, alpha=alpha)
 
+=======
+          c=fake_label_numbers, alpha=alpha)
+>>>>>>> 44ae0172d780422679579d84fbfc4dede847be0f
 
   for i in range(len(labels)):
     label_name = labels[i]
@@ -61,12 +74,16 @@ def main():
       plt.ylabel("learned probabilities", rotation=90)
     set_lims(ax)
     if len(k):
+<<<<<<< HEAD
       #if label_name == "HYPO":
       #  plt.scatter(k[:,1], k[:,0],
       #    c=fake_label_numbers, alpha=alpha)
       #else:
       if True:
         plt.scatter(k[:,0], k[:,1],
+=======
+      plt.scatter(k[:,0], k[:,1],
+>>>>>>> 44ae0172d780422679579d84fbfc4dede847be0f
           c=fake_label_numbers, alpha=alpha)
 
   plt.show()
